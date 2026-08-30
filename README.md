@@ -15,33 +15,33 @@ A solução transforma smartphones Android comuns em nós de uma rede mesh offli
 
 ## 🎯 Principais Funcionalidades
 
-- **Comunicação Mesh Offline:** Envio e retransmissão de pacotes de dados e alertas entre nós sem necessidade de infraestrutura centralizada[cite: 1].
-- **Detecção de Quedas na Borda:** Aquisição contínua de aceleração e inferência local para identificação de eventos críticos[cite: 1].
-- **Operação em Segundo Plano:** Execução ininterrupta via serviço de primeiro plano, garantindo funcionamento mesmo com o aparelho bloqueado[cite: 1].
-- **Degradação Graciosa:** Mecanismo de contingência baseado em motor determinístico de regras (RuleEngine) caso a inferência do modelo falhe ou seja removida[cite: 1].
-- **Privacidade e Segurança:** Dados sensíveis cifrados em repouso com AES-GCM e chaves mantidas no Android Keystore, sem exportação de dados para a nuvem[cite: 1].
+- **Comunicação Mesh Offline:** Envio e retransmissão de pacotes de dados e alertas entre nós sem necessidade de infraestrutura centralizada.
+- **Detecção de Quedas na Borda:** Aquisição contínua de aceleração e inferência local para identificação de eventos críticos.
+- **Operação em Segundo Plano:** Execução ininterrupta via serviço de primeiro plano, garantindo funcionamento mesmo com o aparelho bloqueado.
+- **Degradação Graciosa:** Mecanismo de contingência baseado em motor determinístico de regras (RuleEngine) caso a inferência do modelo falhe ou seja removida.
+- **Privacidade e Segurança:** Dados sensíveis cifrados em repouso com AES-GCM e chaves mantidas no Android Keystore, sem exportação de dados para a nuvem.
 
 ---
 
 ## 📁 Estrutura da Documentação
 
-- [`docs/PROPOSAL.md`](docs/PROPOSAL.md) — Ficha formal da proposta do projeto com a Tabela de Mapeamento das Dez Capacidades[cite: 1].
-- [`docs/DECISIONS.md`](docs/DECISIONS.md) — Registro de Decisões de Arquitetura (ADR)[cite: 1].
-- [`docs/presentations/`](docs/presentations/) — Slides das apresentações da disciplina[cite: 1].
+- [`docs/PROPOSAL.md`](docs/PROPOSAL.md) — Ficha formal da proposta do projeto com a Tabela de Mapeamento das Dez Capacidades.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — Registro de Decisões de Arquitetura (ADR).
+- [`docs/presentations/`](docs/presentations/) — Slides das apresentações da disciplina.
 
 ---
 
 ## 👥 Integrantes do Grupo
 
-- **Juliano Cesar Ferreira Ramos** — [@github_user1](https://github.com/AlphaFNTZ) — `juliano.ramos@estudante.ufla.br`
+- **Juliano Cesar Ferreira Ramos** — [@AlphaFNTZ](https://github.com/AlphaFNTZ) — `juliano.ramos@estudante.ufla.br`
 - **João Paulo Silva** — [@github_user2](https://github.com/user2) — `email2@ufla.br`
-- **Andre Bueno Ocanha** — [@github_user3](https://github.com/user3) — `email3@ufla.br`
+- **Andre Bueno Ocanha** — [@AndreOcanha](https://github.com/AndreOcanha) — `andre.ocanha@estudante.ufla.br`
 
 ---
 
 ## 🛠️ Requisitos e Configuração do Ambiente
 
-- **IDE:** Android Studio (JDK 17)[cite: 1]
-- **Linguagem:** Java / Kotlin[cite: 1]
-- **minSdk:** 26 (Android 8.0 Oreo)[cite: 1]
-- **Testes:** Unidade em JUnit rodando localmente na JVM[cite: 1]
+- **IDE:** Android Studio (JDK 17)
+- **Linguagem:** Java / Kotlin
+- **minSdk:** 26 (Android 8.0 Oreo)
+- **Testes:** Unidade em JUnit rodando localmente na JVM
