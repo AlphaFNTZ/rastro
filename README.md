@@ -34,7 +34,7 @@ A solução transforma smartphones Android comuns em nós de uma rede mesh offli
 ## 👥 Integrantes do Grupo
 
 - **Juliano Cesar Ferreira Ramos** — [@AlphaFNTZ](https://github.com/AlphaFNTZ) — `juliano.ramos@estudante.ufla.br`
-- **João Paulo Silva** — [@github_user2](https://github.com/user2) — `email2@ufla.br`
+- **João Paulo Silva** — [@joaosilva86](https://github.com/joaosilva86) — `joao.silva86@estudante.ufla.br`
 - **Andre Bueno Ocanha** — [@AndreOcanha](https://github.com/AndreOcanha) — `andre.ocanha@estudante.ufla.br`
 
 ---
