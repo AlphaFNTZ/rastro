@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Rastro</string>
+    <string name="title_demo">Rastro • conexão offline</string>
+    <string name="demo_instructions">Demonstração entre dois aparelhos. Ative Wi-Fi e localização, abra o Rastro nos dois e busque dispositivos. Mantenha esta tela aberta durante o teste. O SOS é apenas de teste.</string>
+    <string name="status_initial">Nenhum aparelho conectado</string>
+    <string name="discover">Buscar dispositivos</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="send_sos">Enviar SOS de teste</string>
+    <string name="sos_initial">Nenhum SOS enviado. A confirmação indica recebimento pelo aplicativo.</string>
+    <string name="start_sensors">Iniciar leituras IMU</string>
+    <string name="stop_sensors">Parar leituras IMU</string>
+    <string name="sensors_initial">Leituras inerciais paradas</string>
+    <string name="read_gnss">Ler acurácia GNSS</string>
+    <string name="gnss_initial">Aguardando início da leitura GNSS</string>
 </resources>

@@ -1,19 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="24dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/title_demo" android:textSize="26sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/demo_instructions" android:paddingTop="12dp" />
+        <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="16dp" android:text="@string/status_initial" android:accessibilityLiveRegion="polite" />
+        <Button android:id="@+id/discover" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/discover" />
+        <LinearLayout android:id="@+id/peers" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" />
+        <Button android:id="@+id/disconnect" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/disconnect" />
+        <Button android:id="@+id/sos" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/send_sos" android:enabled="false" />
+        <TextView android:id="@+id/sos_result" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/sos_initial" android:accessibilityLiveRegion="polite" android:padding="8dp" />
+        <Button android:id="@+id/sensors" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/start_sensors" />
+        <TextView android:id="@+id/sensor_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/sensors_initial" android:padding="8dp" />
+        <Button android:id="@+id/gnss" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/read_gnss" />
+        <TextView android:id="@+id/gnss_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/gnss_initial" android:padding="8dp" />
+        <TextView android:id="@+id/event_log" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textIsSelectable="true" android:paddingTop="16dp" />
+    </LinearLayout>
+</ScrollView>

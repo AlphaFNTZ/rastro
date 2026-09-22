@@ -25,3 +25,6 @@ class InvalidSensorReadException(mensagem: String) : RastroDomainException(mensa
  * recorte temporal inválido (desde > até).
  */
 class InvalidTrajetoException(mensagem: String) : RastroDomainException(mensagem)
+
+/** Configuração inválida da região crítica de leituras. */
+class InvalidBufferException(mensagem: String) : RastroDomainException(mensagem)
