@@ -39,3 +39,54 @@
 - **Motivo:** O Android 8.0 (API 26) garante suporte à leitura das acurácias da velocidade via sensor GPS (GNSS), que é o dado basilar usado pela matriz de covariância na reconciliação (Camada 2).
 - **Consequências:** Aparelhos muito antigos serão excluídos, mas todos os integrantes do grupo possuem hardware igual ou superior à API 26.
 - **Decidido por:** Juliano Cesar, Andre Bueno, João Paulo
+
+## Registro de implementação S2 — 22/09/2026
+
+As decisões abaixo concretizam a prioridade solicitada por Juliano nesta entrega.
+Devem ser revisadas pelos parceiros no PR, conforme D-04; não representam aprovação
+do docente ou revisão já realizada pelo trio. As decisões D-01 a D-05 continuam válidas.
+
+### D-06 — Comunicação direta antes da detecção automática
+- **Decisão:** prova Wi-Fi Direct com canal TCP bidirecional na porta 8988 e SOS manual;
+  uma conexão entre dois aparelhos por sessão, sem servidor externo ou internet.
+- **Motivo:** testar o risco de descoberta/conexão nos aparelhos reais, isoladamente
+  da aquisição, inferência e detecção de quedas.
+- **Consequências:** interface `Transporte` separa descoberta/conexão do protocolo.
+  Mensagens v1 carregam UUID, origem, tipo, limite de saltos e referência/destino do ACK.
+  O ACK confirma o recebimento pelo aplicativo. Deduplicação limitada a 256 IDs,
+  saída limitada a 64 mensagens e no máximo 16 SOS aguardando confirmação por 10 s.
+  Retransmissão, autenticação entre nós, entrega durável e malha multi-hop não estão
+  implementadas. O teste TCP local não substitui o ensaio físico Wi-Fi Direct.
+
+### D-07 — Incerteza com origem explícita
+- **Decisão:** converter raio GNSS de 68% em variância por eixo sob hipótese gaussiana
+  isotrópica; velocidade escalar usa aproximação sigma = acurácia reportada. Matriz em
+  metros e m/s, não em graus. Correlações assumidas nulas são uma hipótese do modelo.
+- **Consequências:** ausência de acurácia/velocidade gera resultado indisponível.
+  Qualidade IMU é categórica, nunca convertida em sigma. `IncertezaImu.Reportada` só
+  admite fonte quantitativa identificada; o adaptador Android usa `Indisponivel`.
+  Covariância IMU por calibração precisa de aceite do docente. Não foi implementada
+  uma calibração nem declarado cumprimento integral desse item.
+
+### D-08 — Buffer, aquisição e tempo
+- **Decisão:** `CircularImuBuffer` de capacidade fixa, inserção O(1), mesmo monitor
+  para índices, conteúdo e contadores; descartar o mais antigo ao lotar e contar perdas.
+  Snapshot e drenagem retornam coleções independentes com leituras imutáveis.
+- **Consequências:** aquisição em `HandlerThread`, período solicitado de 20.000 µs
+  (50 Hz); consumidor em `ScheduledExecutorService` drena fora da thread de aquisição.
+  Futuras persistência e IA receberão o mesmo lote do consumidor; não disputarão
+  remoções na fila. S2 só apresenta métricas, sem escrever leituras sensíveis em disco.
+  `LeituraImu` mantém timestamp monotônico em ns e aceleração bruta com gravidade,
+  sem inventar atitude. `IMURead` e `Trajeto` da S1 preservam seus contratos.
+  Não há alteração da decisão de corrotinas para o futuro agente.
+
+### D-09 — Escopo Android e projeto de referência
+- **Decisão:** usar o projeto da raiz e seu módulo `app/src`; a cópia `app/app` não
+  recebe a S2 e não deve ser aberta como projeto principal. Nenhum arquivo histórico
+  dessa cópia foi excluído nesta entrega.
+- **Consequências:** interface XML/AppCompat existente é mantida. Serviço de primeiro
+  plano continua futuro: sair da tela encerra sensores, GNSS e conexão. Permissões
+  são pedidas no uso; Android 17 inclui `ACCESS_LOCAL_NETWORK` para os sockets.
+  Backup foi desativado para não replicar a identidade do nó. SQLiteOpenHelper,
+  AES-GCM/Keystore de D-03 continuam previstos, sem persistência sensível nesta prova.
+  Toolchain existente: daemon JDK 25, bytecode Java 11, minSdk 26, SDK 37.

@@ -10,7 +10,22 @@ Trabalhadores em áreas remotas operam sem cobertura de redes móveis. Em caso d
 - **Ativo ou processo:** Trabalhador em deslocamento em terreno remoto, interagindo com outros nós móveis.
 - **Grandeza física medida:** Aceleração (3 eixos, m/s²) e Atitude (inclinação) para detecção determinística de queda, além de Posição/Velocidade (GNSS) para controle da malha de rede.
 - **Sensor e origem da incerteza:** Acelerômetro e Giroscópio IMU (ruído de hardware e viés de integração) e GNSS (acurácia de posição e velocidade reportadas pelo sensor).
-- **Período de amostragem pretendido e prazo associado:** Amostragem da cinemática a 20Hz (50ms) com prazo em milissegundos; atuador do rádio Wi-Fi reconfigurado dinamicamente na ordem de segundos.
+- **Período de amostragem pretendido e prazo associado:** Para a entrega S2, acelerômetro solicitado a 50 Hz (20 ms), com frequência efetiva medida pelos timestamps monotônicos. O período solicitado não é uma garantia de prazo do Android; atuador do rádio Wi-Fi reconfigurado dinamicamente na ordem de segundos.
+
+### Recorte de implementação — S2 (22/09/2026)
+
+Prioridade acordada: validar comunicação offline antes de refinar detecção de quedas.
+A implementação S2 oferece aquisição IMU enquanto a tela está visível, buffer circular
+protegido, covariância GNSS e demonstração Wi-Fi Direct/TCP com SOS manual e confirmação
+entre **dois aparelhos**. O protocolo prepara identificadores e limite de saltos, mas
+não implementa retransmissão. Comunicação direta não comprova a malha multi-hop.
+
+O contrato de incerteza não foi dispensado: a API padrão do acelerômetro só reporta
+qualidade categórica, sem sigma por eixo. O estado indisponível é explícito; eventual
+calibração experimental exige alinhamento com o docente. Nenhuma variância é inventada.
+Filtro de erro grosseiro, reconciliação de resíduos, foreground service, persistência
+cifrada, IA e ensaio com três nós permanecem próximos incrementos das dez capacidades.
+Roteiro, limitações e evidências: [README_Semana2.md](README_Semana2.md).
 
 ## 3. Mapeamento das dez capacidades
 
