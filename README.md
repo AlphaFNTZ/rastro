@@ -54,12 +54,43 @@ A solução proposta transformará smartphones Android comuns em nós de uma red
 
 ## 🛠️ Requisitos e Configuração do Ambiente
 
-- **IDE:** Android Studio com suporte ao AGP 9.4.0; abrir a raiz `rastro`, não `app/`
+- **IDE:** Android Studio com suporte ao AGP 9.3.3; abrir a raiz `rastro`, não `app/`
 - **Build atual:** Gradle 9.6.0, AGP 9.3.3, daemon JDK 25, compileSdk/targetSdk 37; bytecode Java 11
 - **Linguagem:** Java / Kotlin
 - **minSdk:** 26 (Android 8.0 Oreo)
 - **Testes:** Unidade em JUnit rodando localmente na JVM
 - **S3:** `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug`
 - **Aparelhos:** Nearby exige Google Play Services. A prova multi-hop exige três
-  Androids e topologia que impeça o enlace direto A → C. A cópia histórica em
-  `app/app` não contém esta entrega.
+  Androids e topologia que impeça o enlace direto A → C.
+
+### Executar no Windows
+
+1. Abra `C:\Projetos\rastro` no Android Studio e sincronize o projeto Gradle.
+2. Configure o caminho do Android SDK em `local.properties` na raiz (arquivo local,
+   ignorado pelo Git). Nesta máquina, o SDK está em `C:\SDK`:
+
+   ```properties
+   sdk.dir=C\:/SDK
+   ```
+
+3. Use o JDK 25 para o Gradle e instale a plataforma Android SDK 37 pelo SDK Manager.
+4. Selecione o módulo `app` e um aparelho ou emulador com Google Play Services e
+   clique em **Run**.
+
+Para compilar e validar pelo PowerShell, execute na raiz:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+```
+
+O APK será gerado em `app/build/outputs/apk/debug/app-debug.apk`. Com um dispositivo
+conectado e a depuração USB autorizada, instale com:
+
+```powershell
+.\gradlew.bat :app:installDebug
+```
+
+Existe apenas um projeto Gradle: configurações e wrapper ficam na raiz, código e
+recursos em `app/src`, e documentação em `docs`. A cópia inicial `app/app` e as
+configurações Gradle duplicadas em `app/` foram removidas; seus ícones personalizados
+foram preservados no aplicativo atual.
