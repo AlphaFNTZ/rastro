@@ -1,6 +1,0 @@
-Ideias de implementações no aplicativo
-
-1- Através da mensagem de S.O.S disparado por um dos aplicativos encaminhar em conjunto a localização do dispositivo que mandou o S.O.S e a data e hora em que foi emitido o S.O.S.
-  1.1- Adicionar a data e hora e o nome do dispositivo no log exibido na tela principal 
-2- Na tela principal do aplicativo mostrar um mapa com a localização atual do dispositivo e mostrar a localização do S.O.S mais recente emitido por um dos dispositivos conectados na rede.
-  2.1- Nessa exibição da localização do dispositivo que emitiu o S.O.S no mapa colocar em uma área em volta do dispositivo mostrando a possivel área de sinal daquele dispositivo.
