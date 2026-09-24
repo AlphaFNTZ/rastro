@@ -27,6 +27,22 @@ Filtro de erro grosseiro, reconciliação de resíduos, foreground service, pers
 cifrada, IA e ensaio com três nós permanecem próximos incrementos das dez capacidades.
 Roteiro, limitações e evidências: [README_Semana2.md](README_Semana2.md).
 
+### Recorte de implementação — S3 (24/09/2026)
+
+O transporte Wi-Fi Direct/TCP da prova S2 foi substituído por Nearby Connections
+com `P2P_CLUSTER`. Cada nó anuncia e descobre simultaneamente, solicita conexões
+automaticamente por uma regra determinística e mantém múltiplos vizinhos. Sobre os
+enlaces diretos, `MeshRouter` implementa flooding de mensagens pequenas, TTL,
+deduplicação e confirmação destinada à origem. Um serviço de primeiro plano mantém
+rede e IMU ativas fora da tela.
+
+Para o protótipo acadêmico, conexões com o mesmo `serviceId` são aceitas sem conferir
+os dígitos de autenticação. Isso é uma limitação de segurança deliberada, não um
+cumprimento da capacidade 9. Nearby fornece enlaces criptografados, mas autenticação
+de nós, cifragem de dados em repouso e identidade ponta a ponta continuam futuras.
+A lógica foi validada na JVM; descoberta e multi-hop ainda dependem de ensaio físico
+com três aparelhos. Detalhes em [README_Semana3.md](README_Semana3.md).
+
 ## 3. Mapeamento das dez capacidades
 
 | # | Capacidade | O que significa no nosso domínio | Teste de aceitação |

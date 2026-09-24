@@ -90,3 +90,59 @@ do docente ou revisão já realizada pelo trio. As decisões D-01 a D-05 continu
   Backup foi desativado para não replicar a identidade do nó. SQLiteOpenHelper,
   AES-GCM/Keystore de D-03 continuam previstos, sem persistência sensível nesta prova.
   Toolchain existente: daemon JDK 25, bytecode Java 11, minSdk 26, SDK 37.
+
+## Registro de implementação S3 — 24/09/2026
+
+### D-10 — Nearby Connections como enlace
+- **Decisão:** substituir Wi-Fi Direct/TCP por Nearby Connections 19.3.0, estratégia
+  `P2P_CLUSTER`, com advertising e discovery simultâneos. O `serviceId` é o pacote
+  do app e o UUID persistente do nó é publicado como nome do endpoint.
+- **Motivo:** eliminar seleção manual de rede/aparelho e permitir múltiplos vizinhos.
+- **Consequências:** aparelhos precisam de Google Play Services. A versão 19.5.0
+  proposta inicialmente exige metadados Kotlin 2.4, incompatíveis com o AGP 9.3.3
+  adotado no projeto; 19.3.0 é o recuo compatível validado. Nearby é apenas enlace:
+  não encaminha mensagens para nós fora do alcance. Nesta versão, as permissões
+  `ACCESS_WIFI_STATE` e `CHANGE_WIFI_STATE` não podem ser limitadas à API 31: o SDK
+  ainda as verifica em versões posteriores e retorna o erro 8032 quando ausentes.
+
+### D-11 — Roteamento inicial por flooding
+- **Decisão:** `MeshRouter` aplica UUID, cache limitado, TTL e retransmissão a todos
+  os vizinhos exceto o enlace de entrada. ACKs destinados à origem usam o mesmo
+  flooding controlado.
+- **Motivo:** obter uma prova A → B → C simples antes de introduzir tabelas de rota.
+- **Consequências:** o custo cresce com a densidade da rede. Cada aparelho que recebe
+  um SOS gera ACK; métricas futuras devem distinguir primeiro ACK e destino desejado.
+
+### D-12 — Serviço de primeiro plano e confiança temporária
+- **Decisão:** rede, IMU e GNSS pertencem a `RastroService`; a Activity apenas solicita
+  permissões, inicia explicitamente o serviço e observa seu estado. O serviço usa os
+  tipos `connectedDevice|location` e notificação persistente.
+- **Decisão de segurança provisória:** aceitar automaticamente conexões Nearby sem
+  validar o token, somente durante o protótipo acadêmico.
+- **Consequências:** fechar a tela não encerra aquisição/rede. Android ainda exige
+  ação inicial, permissões e notificação. Qualquer aparelho com o mesmo `serviceId`
+  pode entrar na malha; antes de dados reais é obrigatório pareamento autenticado.
+
+### D-13 — Identidade técnica separada do nome visual
+- **Decisão:** cada anúncio usa `rastro1|UUID|nome-base64url`. O UUID persistente
+  governa conexão/deduplicação; o nome de até 32 bytes é editável e salvo localmente.
+  A interface acrescenta os oito primeiros caracteres do UUID ao nome e mostra os
+  estados descoberto, conectando e conectado.
+- **Motivo:** permitir identificação humana sem usar nomes potencialmente duplicados
+  como identidade de protocolo.
+- **Consequências:** mudar o nome reinicia advertising/discovery e refaz os enlaces.
+  Nome e UUID anunciados ainda não são autenticados e não devem indicar confiança.
+
+### D-14 — Telemetria de enlace e presença multi-hop
+- **Decisão:** enlaces locais exibem a qualidade informada por
+  `onBandwidthChanged`; o transporte é rotulado como **Nearby automático**, pois o
+  SDK não revela se a conexão corrente usa Bluetooth clássico, BLE ou Wi-Fi. O grupo
+  Android **Dispositivos próximos** é tratado como permissão, não como transporte.
+  Mensagens `PRESENCA` no protocolo v2 são inundadas a cada cinco segundos e carregam
+  origem, nome e contagem de saltos. Rotas não renovadas expiram em 16 segundos.
+- **Motivo:** distinguir com honestidade nós diretos e indiretos, sem atribuir ao SDK
+  uma observabilidade de rádio que ele não oferece.
+- **Consequências:** a qualidade só existe para enlaces diretos. A rota indireta é o
+  primeiro caminho observado para cada anúncio, não uma garantia de menor caminho;
+  mudanças podem levar até a expiração para desaparecer da interface. O protocolo
+  mantém leitura das mensagens v1 para compatibilidade durante a atualização.
