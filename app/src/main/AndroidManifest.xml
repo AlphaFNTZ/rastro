@@ -2,18 +2,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Nearby 19.3 consulta estas permissões também no Android 13+; não limitar por SDK. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" android:minSdkVersion="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:minSdkVersion="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:minSdkVersion="31" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:minSdkVersion="33" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
-    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
         android:allowBackup="false"
@@ -24,6 +34,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Rastro">
+        <service
+            android:name=".service.RastroService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|location" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

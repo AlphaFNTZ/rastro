@@ -16,11 +16,19 @@ class MensagemTest {
     }
     @Test fun `rejeita versoes campos e comprimentos invalidos`() {
         val sos = Mensagem.sos(no())
-        for (texto in listOf("", "x".repeat(513), sos.codificar().replaceFirst("1|", "2|"), "1|invalido|x|SOS_MANUAL|4||")) {
+        for (texto in listOf("", "x".repeat(513), "3" + sos.codificar().drop(1), "1|invalido|x|SOS_MANUAL|4||")) {
             assertThrows(IllegalArgumentException::class.java) { Mensagem.decodificar(texto) }
         }
         assertThrows(IllegalArgumentException::class.java) { sos.copy(limiteSaltos = -1) }
         assertThrows(IllegalArgumentException::class.java) { sos.copy(tipo = TipoMensagem.CONFIRMACAO) }
+    }
+    @Test fun `presenca preserva nome e contabiliza saltos`() {
+        val presenca = Mensagem.presenca(no(), "Equipe Ç").copy(limiteSaltos = 3)
+        assertEquals(presenca, Mensagem.decodificar(presenca.codificar()))
+        val encaminhada = presenca.avancarSalto()
+        assertEquals(2, encaminhada.limiteSaltos)
+        assertEquals(1, encaminhada.saltosPercorridos)
+        assertEquals("Equipe Ç", encaminhada.nomeOrigem)
     }
     @Test fun `cache suprime duplicatas e tem capacidade limitada`() {
         val vistas = MensagensVistas(2)

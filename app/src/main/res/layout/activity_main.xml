@@ -10,10 +10,17 @@
             android:text="@string/demo_instructions" android:paddingTop="12dp" />
         <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="16dp" android:text="@string/status_initial" android:accessibilityLiveRegion="polite" />
+        <EditText android:id="@+id/device_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/device_name_hint" android:inputType="textCapWords" android:maxLength="32"
+            android:singleLine="true" android:importantForAutofill="no" />
+        <Button android:id="@+id/save_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/save_device_name" />
         <Button android:id="@+id/discover" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/discover" />
-        <LinearLayout android:id="@+id/peers" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/nearby_transport_explanation" android:padding="8dp" />
+        <TextView android:id="@+id/peers" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/no_devices" android:padding="8dp" android:textIsSelectable="true" />
         <Button android:id="@+id/disconnect" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/disconnect" />
         <Button android:id="@+id/sos" android:layout_width="match_parent" android:layout_height="wrap_content"
