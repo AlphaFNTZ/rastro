@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silhueta vetorial da marca R/estrada, branca sobre fundo transparente. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group android:scaleX="0.065" android:scaleY="0.065"
+        android:translateX="-5.88" android:translateY="-6.19">
+        <path android:fillColor="#FFFFFFFF"
+            android:pathData="M158,126 L279,126 C325,126 359,157 359,203 C359,244 332,275 289,282 L363,347 C393,374 402,404 387,433 L360,433 C377,399 365,378 337,354 L225,276 C208,264 210,243 229,243 L278,243 C299,243 315,229 315,207 C315,184 300,169 278,169 L193,169 L193,327 C193,335 190,339 184,343 L157,362 C154,364 152,361 152,357 L152,133 C152,128 154,126 158,126 Z" />
+        <path android:fillColor="#FFFFFFFF"
+            android:pathData="M225,301 L234,304 L248,313 L241,317 Z M251,325 L260,322 L278,335 L269,339 Z M280,349 L291,345 L308,359 L297,364 Z M307,376 L319,371 Q332,383 337,395 L322,397 Q317,384 307,376 Z M321,409 L338,407 Q336,422 326,433 L302,433 Q317,424 321,409 Z" />
+    </group>
+</vector>

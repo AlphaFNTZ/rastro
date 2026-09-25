@@ -368,7 +368,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
     }
 
     private fun notificacao() = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_rastro_notification)
         .setContentTitle(getString(R.string.notification_title))
         .setContentText(if (estado.quantidadeConectados == 0) getString(R.string.notification_text) else "${estado.quantidadeConectados} vizinho(s) conectado(s)")
         .setOngoing(true)
