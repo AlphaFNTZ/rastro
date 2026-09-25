@@ -146,3 +146,34 @@ do docente ou revisão já realizada pelo trio. As decisões D-01 a D-05 continu
   primeiro caminho observado para cada anúncio, não uma garantia de menor caminho;
   mudanças podem levar até a expiração para desaparecer da interface. O protocolo
   mantém leitura das mensagens v1 para compatibilidade durante a atualização.
+
+## Melhorias 01 — 25/09/2026
+
+### D-15 — SOS v3 e estado da sessão
+
+- **Decisão:** SOS imutável com nome, hora UTC, posição opcional, precisão opcional,
+  idade monotônica e condição da posição na emissão. Protocolo limitado a 1024 bytes
+  com leitura v1/v2; todos os aparelhos precisam ser atualizados para transmitir v3.
+- **Aquisição:** serviço inicia GPS/rede com o monitoramento, intervalo de 5 s e
+  posição recente até 60 s por padrão (configurável). `PosicaoMapper` não exige
+  velocidade e não modifica o contrato científico de `LocationMapper`.
+- **Histórico:** 100 eventos em memória; último SOS pela primeira entrega local,
+  não pelo relógio remoto. ACK/timeout usam relógio monotônico local. A identidade
+  declarada permanece não autenticada. Persistência sensível segue futura em D-03.
+
+### D-16 — MapLibre, região offline e perfis medidos
+
+- **Decisão:** MapLibre Native Android 13.6.1 em XML, estilo Bright do OpenFreeMap,
+  atribuição OpenMapTiles/OpenStreetMap. Uma região preparada pelo usuário, até
+  20 km por lado e zoom 16, orçamento de 256 MiB de recursos + 32 MiB de cache.
+  O orçamento é verificado em progresso; recursos em trânsito e SQLite podem
+  ultrapassá-lo. Nenhum download em massa do servidor raster público OSM.
+- **Resiliência:** mapa-base ausente não remove coordenadas nem os marcadores.
+  O mapa não inicia aquisição paralela e respeita câmera explorada pelo usuário.
+- **Alcance:** nenhuma conversão de qualidade Nearby para metros. Perfis JSON
+  importados registram aparelhos, condições, evidência, distâncias e ACK/falhas.
+  Raio exige ao menos dez repetições por distância e 90% de sucesso no prazo do
+  ensaio. Camada tracejada, inicialmente desligada, com confirmação de condições
+  para cada novo SOS. Não há medições físicas embutidas ou cobertura garantida.
+- **Operação:** veja [guia](MELHORIAS_01_IMPLEMENTACAO.md) e
+  [procedimento de ensaios](ENSAIOS_ALCANCE.md).

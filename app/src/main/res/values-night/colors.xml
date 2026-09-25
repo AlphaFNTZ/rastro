@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Badges de status dos dispositivos (Dark theme) -->
+    <color name="device_badge_direct_bg">#152238</color>
+    <color name="device_badge_direct_fg">#60A5FA</color>
+    <color name="device_badge_indirect_bg">#2A1515</color>
+    <color name="device_badge_indirect_fg">#F87171</color>
+    <color name="device_badge_low_bg">#132A22</color>
+    <color name="device_badge_low_fg">#34D399</color>
+
+    <!-- Fades / Gradientes sobre o Mapa (Dark theme) -->
+    <color name="map_fade_header_solid">#08090D</color>
+    <color name="map_fade_header_semi">#E608090D</color>
+    <color name="map_fade_header_transparent">#0008090D</color>
+    <color name="map_fade_footer_solid">#08090D</color>
+    <color name="map_fade_footer_transparent">#0008090D</color>
+
+    <!-- Barra de navegação inferior (Dark theme) -->
+    <color name="nav_bar_bg">#08090D</color>
+    <color name="nav_bar_border">#2A2F3D</color>
+    <color name="nav_icon_unselected">#F4F5F8</color>
+    <color name="nav_item_selected_bg">#8B7CFF</color>
+    <color name="nav_item_selected_fg">#08090D</color>
+
+    <!-- Botões de ação principais (Dark theme) -->
+    <color name="btn_ativar_bg">#34D399</color>
+    <color name="btn_ativar_fg">#07271B</color>
+    <color name="btn_desativar_bg">#F87171</color>
+    <color name="btn_desativar_fg">#2A0A0A</color>
+
+    <!-- Superfícies e bordas de cards (Dark theme) -->
+    <color name="card_surface_bg">#1A1D28</color>
+    <color name="card_stroke_color">#2A2F3D</color>
+    <color name="search_bar_bg">#1A1D28</color>
+    <color name="search_bar_stroke">#2A2F3D</color>
+</resources>

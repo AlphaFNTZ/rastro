@@ -9,7 +9,7 @@
     <string name="nearby_transport_explanation">Transporte: Nearby automático. O Google escolhe entre Bluetooth, BLE e Wi-Fi e não informa ao aplicativo qual rádio está ativo. “Dispositivos próximos” é a permissão do Android, não um transporte.</string>
     <string name="discover">Iniciar Rastro</string>
     <string name="disconnect">Parar Rastro</string>
-    <string name="send_sos">Enviar SOS de teste</string>
+    <string name="send_sos">Enviar SOS</string>
     <string name="sos_initial">Nenhum SOS enviado. A confirmação indica recebimento pelo aplicativo.</string>
     <string name="start_sensors">Iniciar leituras IMU</string>
     <string name="stop_sensors">Parar leituras IMU</string>
@@ -19,4 +19,46 @@
     <string name="notification_channel">Monitoramento Rastro</string>
     <string name="notification_title">Rastro ativo</string>
     <string name="notification_text">Procurando e mantendo conexões offline</string>
+
+    <!-- Strings do Design e Novas Telas -->
+    <string name="greeting_format">Olá, %1$s</string>
+    <string name="default_user_name">Juliano</string>
+    <string name="activate_rastro_mode">Ativar o modo rastro</string>
+    <string name="deactivate_rastro_mode">Desativar</string>
+
+    <!-- Configuração -->
+    <string name="title_configuracao">Configuração</string>
+    <string name="section_nome">NOME</string>
+    <string name="item_nome_usuario">Nome do usuário</string>
+    <string name="section_localizacao">LOCALIZAÇÃO</string>
+    <string name="item_tempo_atualizacao">Tempo de atualização</string>
+    <string name="section_sos">SOS</string>
+    <string name="item_importar_perfil">Importar perfil de ensaio</string>
+    <string name="item_alcance_estimado">Alcance estimado</string>
+    <string name="section_mapa_offline">MAPA OFFLINE</string>
+    <string name="item_preparar_area">Preparar área visível</string>
+    <string name="item_ver_regiao">Ver região preparada</string>
+    <string name="item_recarregar_base">Recarregar base de dados</string>
+    <string name="item_remover_regiao">Remover região offline</string>
+    <string name="version_label">Versão 1.0</string>
+
+    <!-- Lista de Dispositivos -->
+    <string name="title_dispositivos">Lista de dispositivos</string>
+    <string name="search_hint">Buscar nome…</string>
+    <string name="section_hoje">HOJE, 4 DE JUNHO</string>
+    <string name="empty_dispositivos">Nenhum dispositivo encontrado no alcance</string>
+
+    <!-- Histórico -->
+    <string name="title_historico">Histórico de sessão</string>
+    <string name="empty_historico">Nenhum evento registrado nesta sessão</string>
+    <string name="date_hoje">HOJE, 4 DE JUNHO</string>
+    <string name="date_ontem">3 DE JUNHO</string>
+
+    <!-- Navegação -->
+    <string name="nav_home">Início</string>
+    <string name="nav_devices">Dispositivos</string>
+    <string name="nav_history">Histórico</string>
+    <string name="cd_configuracao">Abrir configurações</string>
+    <string name="cd_voltar">Voltar</string>
+    <string name="cd_dispositivo_icone">Ícone do dispositivo</string>
 </resources>

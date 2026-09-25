@@ -38,6 +38,7 @@
             android:name=".service.RastroService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice|location" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -48,6 +49,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ConfiguracaoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".DispositivosActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".HistoricoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

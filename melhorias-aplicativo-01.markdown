@@ -2,7 +2,7 @@
 
 Data: 24/09/2026.
 
-Status: planejamento para implementação posterior. Este documento substitui `melhorias-aplicativo-01.txt`. As funcionalidades descritas abaixo ainda precisam ser implementadas e validadas.
+Status: implementação de software realizada em 25/09/2026; consulte [implementação, uso e validação](docs/MELHORIAS_01_IMPLEMENTACAO.md). Ensaios físicos de rádio, calibração de alcance e consumo de bateria permanecem pendentes. Este documento substitui `melhorias-aplicativo-01.txt`; as seções abaixo preservam os requisitos da entrega.
 
 ## 1. Objetivo e decisões adotadas
 

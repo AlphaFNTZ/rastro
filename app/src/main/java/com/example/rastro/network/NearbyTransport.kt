@@ -43,7 +43,7 @@ class NearbyTransport(
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             val bytes = payload.asBytes() ?: return
-            val mensagem = runCatching { Mensagem.decodificar(bytes.toString(Charsets.UTF_8)) }
+            val mensagem = runCatching { Mensagem.decodificar(bytes) }
                 .getOrElse {
                     publicarStatus("Mensagem inválida descartada de ${rotulo(endpointId)}")
                     return

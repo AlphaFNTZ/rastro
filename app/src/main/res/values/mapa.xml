@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Rastro.MapTitle" parent="">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorOnSurface</item><item name="android:textSize">16sp</item><item name="android:textStyle">bold</item>
+    </style>
+    <style name="Rastro.MapText" parent="">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">8dp</item><item name="android:textColor">?attr/colorOnSurfaceVariant</item><item name="android:textSize">13sp</item>
+    </style>
+    <style name="Rastro.MapButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item><item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">50dp</item><item name="android:layout_marginTop">8dp</item><item name="cornerRadius">10dp</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+    </style>
+    <string name="map_title">Localização e mapa</string>
+    <string name="location_waiting">Localização ainda não iniciada</string>
+    <string name="location_age">Validade da posição recente</string>
+    <string name="map_description">Mapa da posição local e da posição registrada no último SOS recebido</string>
+    <string name="map_loading">Carregando mapa…</string>
+    <string name="map_attribution">© OpenMapTiles · © OpenStreetMap contributors · OpenFreeMap\nhttps://www.openstreetmap.org/copyright</string>
+    <string name="map_legend_local">● Posição local — roxo (esmaecido: última conhecida)</string>
+    <string name="map_legend_sos">● Último SOS recebido — vermelho</string>
+    <string name="map_legend_range">┄ Alcance estimado — verde tracejado, quando habilitado</string>
+    <string name="map_accuracy_explanation">Áreas preenchidas: precisão da localização (68% de confiança). Não representam alcance de rádio nem deslocamento desde o SOS.</string>
+    <string name="my_location">Minha localização</string>
+    <string name="view_sos">Ver SOS</string>
+    <string name="last_sos_title">Último SOS recebido</string>
+    <string name="last_sos_empty">Nenhum SOS recebido nesta sessão</string>
+    <string name="estimated_range">Alcance estimado</string>
+    <string name="range_no_profile">Sem perfil de medições aplicável. Nenhuma cobertura estimada será desenhada.</string>
+    <string name="import_profile">Importar perfil de ensaio (.json)</string>
+    <string name="offline_title">Mapa offline</string>
+    <string name="offline_instructions">Antes de sair, enquadre a região e prepare com internet. Área máxima: 20 km por lado; zoom até 16; orçamento: 256 MiB de recursos + 32 MiB de cache. Aguarde “Região preparada”.</string>
+    <string name="offline_loading">Consultando região preparada…</string>
+    <string name="prepare_map">Preparar área visível</string>
+    <string name="pause_resume_map">Pausar / retomar download</string>
+    <string name="view_region">Ver região preparada</string>
+    <string name="reload_map">Recarregar mapa-base</string>
+    <string name="delete_map">Remover região offline</string>
+    <string name="session_history">Histórico da sessão (até 100 eventos)</string>
+</resources>

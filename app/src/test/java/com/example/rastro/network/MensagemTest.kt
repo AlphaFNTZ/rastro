@@ -16,7 +16,7 @@ class MensagemTest {
     }
     @Test fun `rejeita versoes campos e comprimentos invalidos`() {
         val sos = Mensagem.sos(no())
-        for (texto in listOf("", "x".repeat(513), "3" + sos.codificar().drop(1), "1|invalido|x|SOS_MANUAL|4||")) {
+        for (texto in listOf("", "x".repeat(Mensagem.MAX_BYTES + 1), "4" + sos.codificar().drop(1), "1|invalido|x|SOS_MANUAL|4||")) {
             assertThrows(IllegalArgumentException::class.java) { Mensagem.decodificar(texto) }
         }
         assertThrows(IllegalArgumentException::class.java) { sos.copy(limiteSaltos = -1) }

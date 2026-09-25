@@ -22,6 +22,12 @@ estão implementadas. A API padrão IMU não fornece sigma por eixo: a limitaç�
 permanece explícita. Veja [entrega S3](docs/README_Semana3.md) e
 [resultados da validação](docs/VALIDACAO_S3.md).
 
+**Melhorias 01:** SOS v3 com nome, horário e posição opcional; aquisição automática
+de localização, histórico estruturado da sessão e mapa MapLibre com precisão GPS,
+região offline preparada pelo usuário e perfis de alcance medidos. Veja o
+[guia de uso e validação](docs/MELHORIAS_01_IMPLEMENTACAO.md). Atualize todos os
+aparelhos do ensaio: versões antigas não interpretam as mensagens v3.
+
 A solução proposta transformará smartphones Android comuns em nós de uma rede mesh offline descentralizada (via Wi-Fi Direct / Bluetooth LE). O objetivo é executar processamento e inferência de IA inteiramente no dispositivo (*Edge AI*), detectar situações de emergência através dos sensores inerciais e propagar alertas em saltos (*multi-hop*) até a base. A proposta detalhada prioriza regras determinísticas para quedas e IA para administrar a rede.
 
 ---

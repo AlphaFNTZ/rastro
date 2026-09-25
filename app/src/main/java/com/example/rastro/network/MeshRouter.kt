@@ -8,7 +8,8 @@ class MeshRouter(
     private val noLocal: String,
     private val transmitir: (mensagem: Mensagem, excetoEndpoint: String?) -> Int,
     private val entregar: (vindoDe: String, mensagem: Mensagem) -> Unit,
-    capacidadeHistorico: Int = 256
+    capacidadeHistorico: Int = 256,
+    private val nomeLocal: () -> String? = { null }
 ) {
     private val vistas = MensagensVistas(capacidadeHistorico)
 
@@ -25,7 +26,7 @@ class MeshRouter(
         when (mensagem.tipo) {
             TipoMensagem.SOS_MANUAL -> {
                 entregar(vindoDe, mensagem)
-                originar(mensagem.confirmar(noLocal))
+                originar(mensagem.confirmar(noLocal, nomeLocal()))
             }
             TipoMensagem.CONFIRMACAO -> if (mensagem.destino == noLocal) entregar(vindoDe, mensagem)
             TipoMensagem.PRESENCA -> entregar(vindoDe, mensagem)

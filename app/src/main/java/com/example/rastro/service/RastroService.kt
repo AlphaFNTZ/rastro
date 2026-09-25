@@ -36,6 +36,8 @@ import com.example.rastro.s2.CircularImuBuffer
 import com.example.rastro.sensors.ImuSensorSource
 import com.example.rastro.sensors.LocationMapper
 import com.example.rastro.sensors.ResultadoGnss
+import com.example.rastro.sensors.PosicaoMapper
+import com.example.rastro.sos.*
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -51,7 +53,12 @@ data class EstadoRastro(
     val sensoresAtivos: Boolean = false,
     val sensor: String = "Leituras inerciais paradas",
     val gnss: String = "Aguardando início da leitura GNSS",
-    val eventos: List<String> = emptyList()
+    val eventos: List<EventoRastro> = emptyList(),
+    val posicaoLocal: LeituraLocal? = null,
+    val estadoLocalizacao: EstadoLocalizacao = EstadoLocalizacao.INDISPONIVEL,
+    val localizacaoStatus: String = "Localização ainda não iniciada",
+    val limitePosicaoRecenteMs: Long = ConfiguracaoLocalizacao.LIMITE_RECENTE_PADRAO_MS,
+    val ultimoSos: SosRecebido? = null
 ) {
     val quantidadeConectados: Int get() = vizinhos.count { it.estado == EstadoVizinho.CONECTADO }
 }
@@ -67,8 +74,8 @@ class RastroService : Service(), NearbyTransport.Eventos {
     private val binder = LocalBinder()
     private val main = Handler(Looper.getMainLooper())
     private val buffer = CircularImuBuffer(500)
-    private val eventosLog = ArrayDeque<String>()
-    private val pendentes = LinkedHashMap<String, Long>()
+    private val historico = HistoricoSessao()
+    private val pendentes = ConfirmacoesPendentes(SystemClock::elapsedRealtime)
     private val rotasIndiretas = LinkedHashMap<String, RotaIndireta>()
     private val localizacao by lazy { getSystemService(LocationManager::class.java) }
     private lateinit var noLocal: String
@@ -76,10 +83,11 @@ class RastroService : Service(), NearbyTransport.Eventos {
     private lateinit var transporte: NearbyTransport
     private lateinit var router: MeshRouter
     private lateinit var imu: ImuSensorSource
-    private var observador: Observador? = null
+    private val observadores = LinkedHashSet<Observador>()
     private var estado = EstadoRastro()
     private var consumidor: ScheduledExecutorService? = null
     private var gnssAtivo = false
+    private var ultimoProvedor: String? = null
     private var destruindo = false
     private var anunciosPresencaAtivos = false
 
@@ -88,12 +96,22 @@ class RastroService : Service(), NearbyTransport.Eventos {
             if (!anunciosPresencaAtivos || !estado.ativo) return
             router.originar(Mensagem.presenca(noLocal, nomeLocal))
             expirarRotas()
+            atualizarIdadePosicao()
             main.postDelayed(this, INTERVALO_PRESENCA_MS)
         }
     }
 
     private val gpsListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
+            val leitura = PosicaoMapper.converter(location)
+            val agora = SystemClock.elapsedRealtime()
+            if (leitura != null && leitura.tempoMonotonicoMs <= agora &&
+                leitura.tempoMonotonicoMs >= (estado.posicaoLocal?.tempoMonotonicoMs ?: 0)) {
+                ultimoProvedor = location.provider
+                publicar(estado.copy(posicaoLocal = leitura,
+                    estadoLocalizacao = leitura.estado(agora, estado.limitePosicaoRecenteMs, gnssAtivo),
+                    localizacaoStatus = if (precisaPermitida()) "Localização precisa autorizada" else "Localização aproximada"))
+            }
             val texto = when (val resultado = LocationMapper.converter(location)) {
                 is ResultadoGnss.Indisponivel -> resultado.motivo
                 is ResultadoGnss.Disponivel ->
@@ -106,8 +124,13 @@ class RastroService : Service(), NearbyTransport.Eventos {
             }
             publicar(estado.copy(gnss = texto))
         }
-        override fun onProviderDisabled(provider: String) = publicar(estado.copy(gnss = "Ative a localização do aparelho"))
-        override fun onProviderEnabled(provider: String) = Unit
+        override fun onProviderDisabled(provider: String) {
+            atualizarIdadePosicao()
+            publicar(estado.copy(localizacaoStatus = "Provedor $provider desligado; aguardando localização disponível"))
+        }
+        override fun onProviderEnabled(provider: String) {
+            publicar(estado.copy(localizacaoStatus = "Aguardando nova leitura de localização"))
+        }
         @Deprecated("Callback necessário na API 26")
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
     }
@@ -124,10 +147,12 @@ class RastroService : Service(), NearbyTransport.Eventos {
             .getString("nome", null)
             ?.let { runCatching { AnuncioNo.normalizarNome(it) }.getOrNull() }
             ?: AnuncioNo.normalizarNome("${Build.MANUFACTURER} ${Build.MODEL}")
-        estado = estado.copy(nomeLocal = nomeLocal)
+        val limite = getSharedPreferences("rastro-no", MODE_PRIVATE).getLong("idade-posicao-ms", ConfiguracaoLocalizacao.LIMITE_RECENTE_PADRAO_MS)
+        estado = estado.copy(nomeLocal = nomeLocal, limitePosicaoRecenteMs = limite.takeIf(ConfiguracaoLocalizacao::limiteValido)
+            ?: ConfiguracaoLocalizacao.LIMITE_RECENTE_PADRAO_MS)
         imu = ImuSensorSource(this, buffer)
         transporte = NearbyTransport(this, noLocal, nomeLocal, this)
-        router = MeshRouter(noLocal, transporte::enviar, ::entregarLocalmente, capacidadeHistorico = 2048)
+        router = MeshRouter(noLocal, transporte::enviar, ::entregarLocalmente, capacidadeHistorico = 2048, nomeLocal = { nomeLocal })
         registrar("Nó ${noLocal.take(8)} preparado para Nearby P2P_CLUSTER")
     }
 
@@ -142,13 +167,16 @@ class RastroService : Service(), NearbyTransport.Eventos {
         transporte.iniciar()
         publicar(estado.copy(ativo = true, status = "Descoberta automática iniciada"))
         iniciarAnunciosPresenca()
+        iniciarGnss()
         return START_STICKY
     }
 
-    fun observar(novo: Observador?) {
-        observador = novo
-        novo?.atualizado(estado)
+    fun observar(novo: Observador) {
+        observadores.add(novo)
+        novo.atualizado(estado)
     }
+
+    fun removerObservador(antigo: Observador) { observadores.remove(antigo) }
 
     fun enviarSos() {
         if (!estado.ativo || transporte.quantidadeConectados() == 0) {
@@ -159,17 +187,21 @@ class RastroService : Service(), NearbyTransport.Eventos {
             publicar(estado.copy(sos = "Aguarde as confirmações pendentes"))
             return
         }
-        val mensagem = Mensagem.sos(noLocal)
+        atualizarIdadePosicao()
+        val leitura = estado.posicaoLocal
+        val mensagem = Mensagem.sos(noLocal, nomeLocal, System.currentTimeMillis(), leitura?.posicao,
+            leitura?.idade(SystemClock.elapsedRealtime()), estado.estadoLocalizacao)
         if (!router.originar(mensagem)) {
             publicar(estado.copy(sos = "Falha ao enviar: nenhum enlace disponível"))
             return
         }
-        pendentes[mensagem.id] = SystemClock.elapsedRealtime()
-        registrar("Enviado SOS ${mensagem.id.take(8)} para a malha")
+        pendentes.registrar(mensagem.id)
+        registrar("SOS enviado para a malha", TipoEvento.ENVIO, mensagem = mensagem)
         publicar(estado.copy(sos = "SOS ${mensagem.id.take(8)} enviado; aguardando ACK multi-hop"))
         main.postDelayed({
-            if (pendentes.remove(mensagem.id) != null) {
-                registrar("Timeout ${mensagem.id.take(8)}")
+            if (pendentes.expirar(mensagem.id)) {
+                registrar("Sem ACK após 10 segundos", TipoEvento.TIMEOUT,
+                    aparelho = IdentidadeNo(mensagem.origem, mensagem.nomeOrigem ?: mensagem.origem.take(8)), mensagem = mensagem)
                 publicar(estado.copy(sos = "SOS ${mensagem.id.take(8)} sem confirmação após 10 segundos"))
             }
         }, TIMEOUT_ACK_MS)
@@ -229,27 +261,67 @@ class RastroService : Service(), NearbyTransport.Eventos {
 
     @SuppressLint("MissingPermission")
     fun iniciarGnss() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            publicar(estado.copy(gnss = "Conceda localização precisa antes de iniciar o GNSS"))
+        if (!estado.ativo) return
+        if (!localizacaoPermitida()) {
+            if (gnssAtivo) localizacao.removeUpdates(gpsListener)
+            gnssAtivo = false
+            atualizarIdadePosicao()
+            publicar(estado.copy(localizacaoStatus = "Permissão de localização negada; SOS disponível sem nova posição"))
             return
         }
-        if (gnssAtivo) return
-        if (!localizacao.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            publicar(estado.copy(gnss = "Ative a localização; prefira um local aberto"))
-            return
+        if (gnssAtivo) localizacao.removeUpdates(gpsListener)
+        try {
+            atualizarForegroundComLocalizacao()
+            val provedores = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+                .filter { it in localizacao.allProviders && (it != LocationManager.GPS_PROVIDER || precisaPermitida()) }
+            provedores.forEach { provider ->
+                localizacao.requestLocationUpdates(provider, ConfiguracaoLocalizacao.INTERVALO_MS, 0f, gpsListener, Looper.getMainLooper())
+            }
+            gnssAtivo = provedores.isNotEmpty()
+            publicar(estado.copy(localizacaoStatus = when {
+                provedores.none { localizacao.isProviderEnabled(it) } -> "Localização desligada ou provedor indisponível; SOS segue sem nova posição"
+                !precisaPermitida() -> "Localização aproximada; aguardando leitura"
+                else -> "Aguardando localização; prefira um local aberto"
+            }))
+        } catch (_: SecurityException) {
+            gnssAtivo = false
+            publicar(estado.copy(localizacaoStatus = "Localização não autorizada; SOS permanece disponível"))
         }
-        atualizarForegroundComLocalizacao()
-        localizacao.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper())
-        gnssAtivo = true
-        publicar(estado.copy(gnss = "Aguardando GNSS com acurácia de velocidade"))
+    }
+
+    private fun precisaPermitida() = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    private fun localizacaoPermitida() = precisaPermitida() || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    fun configurarIdadePosicao(ms: Long) {
+        require(ConfiguracaoLocalizacao.limiteValido(ms))
+        getSharedPreferences("rastro-no", MODE_PRIVATE).edit().putLong("idade-posicao-ms", ms).apply()
+        publicar(estado.copy(limitePosicaoRecenteMs = ms))
+        atualizarIdadePosicao()
+    }
+
+    private fun atualizarIdadePosicao() {
+        val providerAtivo = localizacaoPermitida() && ultimoProvedor?.let {
+            it in localizacao.allProviders && localizacao.isProviderEnabled(it)
+        } == true
+        val situacao = estado.posicaoLocal?.estado(SystemClock.elapsedRealtime(), estado.limitePosicaoRecenteMs,
+            estado.ativo && gnssAtivo && providerAtivo) ?: EstadoLocalizacao.INDISPONIVEL
+        publicar(estado.copy(estadoLocalizacao = situacao))
     }
 
     override fun status(texto: String) {
-        registrar(texto)
+        registrar(texto, TipoEvento.CONEXAO)
         publicar(estado.copy(status = "$texto • ${estado.quantidadeConectados} conectado(s)"))
     }
 
     override fun vizinhosAlterados(vizinhos: List<Vizinho>) {
+        val anteriores = estado.vizinhos.associateBy { it.identidade.id }
+        vizinhos.filter { anteriores[it.identidade.id]?.estado != it.estado }.forEach {
+            registrar("Estado do enlace: ${it.estado}", TipoEvento.CONEXAO, it.identidade)
+        }
+        val idsAtuais = vizinhos.map { it.identidade.id }.toSet()
+        estado.vizinhos.filter { it.identidade.id !in idsAtuais }.forEach {
+            registrar("Aparelho saiu dos vizinhos diretos", TipoEvento.CONEXAO, it.identidade)
+        }
         val conectados = vizinhos.count { it.estado == EstadoVizinho.CONECTADO }
         val idsDiretos = vizinhos.filter { it.estado == EstadoVizinho.CONECTADO }.map { it.identidade.id }.toSet()
         rotasIndiretas.entries.removeAll { (id, rota) -> id in idsDiretos || rota.via.id !in idsDiretos }
@@ -266,14 +338,17 @@ class RastroService : Service(), NearbyTransport.Eventos {
     private fun entregarLocalmente(vindoDe: String, mensagem: Mensagem) {
         when (mensagem.tipo) {
             TipoMensagem.SOS_MANUAL -> {
-                registrar("Recebido SOS ${mensagem.id.take(8)} de ${mensagem.origem.take(8)}")
-                publicar(estado.copy(sos = "SOS de teste recebido do nó ${mensagem.origem.take(8)}; ACK propagado"))
+                val via = estado.vizinhos.firstOrNull { it.endpointId == vindoDe }?.identidade
+                if (historico.receber(mensagem, System.currentTimeMillis(), via)) {
+                    publicar(estado.copy(ultimoSos = historico.ultimoSos,
+                        sos = "SOS recebido de ${mensagem.nomeOrigem ?: mensagem.origem.take(8)}; ACK de recebimento enviado"))
+                }
             }
             TipoMensagem.CONFIRMACAO -> {
-                val inicio = pendentes.remove(mensagem.referencia) ?: return
-                val tempo = SystemClock.elapsedRealtime() - inicio
-                registrar("ACK ${mensagem.referencia?.take(8)} em $tempo ms")
-                publicar(estado.copy(sos = "SOS ${mensagem.referencia?.take(8)} confirmado em $tempo ms"))
+                val tempo = pendentes.confirmar(mensagem.referencia) ?: return
+                registrar("ACK recebido em $tempo ms (tempo local). Não confirma atendimento ou resgate.", TipoEvento.ACK,
+                    IdentidadeNo(mensagem.origem, mensagem.nomeOrigem ?: "Nó ${mensagem.origem.take(8)}"), mensagem)
+                publicar(estado.copy(sos = "SOS ${mensagem.referencia?.take(8)} recebido por outro aplicativo em $tempo ms; atendimento não confirmado"))
             }
             TipoMensagem.PRESENCA -> atualizarRota(vindoDe, mensagem)
         }
@@ -321,7 +396,10 @@ class RastroService : Service(), NearbyTransport.Eventos {
         rotasIndiretas.clear()
         anunciosPresencaAtivos = false
         main.removeCallbacksAndMessages(null)
-        publicar(estado.copy(ativo = false, vizinhos = emptyList(), rotasIndiretas = emptyList(), status = "Serviço parado", gnss = "Leitura GNSS parada"))
+        registrar("Monitoramento encerrado")
+        publicar(estado.copy(ativo = false, vizinhos = emptyList(), rotasIndiretas = emptyList(), status = "Serviço parado", gnss = "Leitura GNSS parada",
+            estadoLocalizacao = if (estado.posicaoLocal == null) EstadoLocalizacao.INDISPONIVEL else EstadoLocalizacao.ANTIGA,
+            localizacaoStatus = "Aquisição parada; posição mantida apenas como histórica"))
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -338,14 +416,15 @@ class RastroService : Service(), NearbyTransport.Eventos {
     }
 
     private fun publicar(novo: EstadoRastro) {
-        estado = novo.copy(eventos = eventosLog.toList())
-        observador?.atualizado(estado)
+        estado = novo.copy(eventos = historico.eventos)
+        observadores.toList().forEach { it.atualizado(estado) }
         atualizarNotificacao()
     }
 
-    private fun registrar(texto: String) {
-        if (eventosLog.size == 30) eventosLog.removeFirst()
-        eventosLog.addLast(texto)
+    private fun registrar(texto: String, tipo: TipoEvento = TipoEvento.SERVICO,
+                          aparelho: IdentidadeNo = IdentidadeNo(noLocal, nomeLocal), mensagem: Mensagem? = null) {
+        historico.registrar(EventoRastro(System.currentTimeMillis(), tipo, aparelho,
+            if (mensagem?.tipo == TipoMensagem.CONFIRMACAO) mensagem.referencia else mensagem?.id, texto, mensagem))
     }
 
     private fun iniciarForeground() {

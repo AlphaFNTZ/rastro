@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="15dp"
+    app:cardBackgroundColor="?attr/colorSurface" app:cardCornerRadius="15dp" app:cardElevation="0dp"
+    app:strokeColor="?attr/colorOutline" app:strokeWidth="1dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView style="@style/Rastro.MapTitle" android:text="@string/map_title" />
+        <TextView android:id="@+id/location_summary" style="@style/Rastro.MapText" android:text="@string/location_waiting" android:textIsSelectable="true"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/location_age" style="@style/Rastro.MapButton" android:text="@string/location_age" />
+        <FrameLayout android:id="@+id/map_host" android:layout_width="match_parent" android:layout_height="300dp" android:layout_marginTop="12dp" android:contentDescription="@string/map_description" />
+        <TextView android:id="@+id/map_status" style="@style/Rastro.MapText" android:text="@string/map_loading" android:accessibilityLiveRegion="polite"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/map_attribution" android:autoLink="web"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/map_legend_local" android:textColor="?attr/colorPrimary"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/map_legend_sos" android:textColor="?attr/colorError"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/map_legend_range" android:textColor="?attr/colorTertiary"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/map_accuracy_explanation" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/my_location" style="@style/Rastro.MapButton" android:text="@string/my_location" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/view_sos" style="@style/Rastro.MapButton" android:text="@string/view_sos" />
+        <TextView style="@style/Rastro.MapTitle" android:text="@string/last_sos_title" android:layout_marginTop="16dp"/>
+        <TextView android:id="@+id/last_sos" style="@style/Rastro.MapText" android:text="@string/last_sos_empty" android:textIsSelectable="true"/>
+        <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/estimated_range" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/estimated_range" android:checked="false" android:enabled="false" />
+        <TextView android:id="@+id/range_profile" style="@style/Rastro.MapText" android:text="@string/range_no_profile" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/import_profile" style="@style/Rastro.MapButton" android:text="@string/import_profile" />
+        <TextView style="@style/Rastro.MapTitle" android:text="@string/offline_title" android:layout_marginTop="16dp"/>
+        <TextView style="@style/Rastro.MapText" android:text="@string/offline_instructions" />
+        <TextView android:id="@+id/offline_status" style="@style/Rastro.MapText" android:text="@string/offline_loading" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/prepare_map" style="@style/Rastro.MapButton" android:text="@string/prepare_map" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/pause_map" style="@style/Rastro.MapButton" android:text="@string/pause_resume_map" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/view_region" style="@style/Rastro.MapButton" android:text="@string/view_region" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/reload_map" style="@style/Rastro.MapButton" android:text="@string/reload_map" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/delete_map" style="@style/Rastro.MapButton" android:text="@string/delete_map" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
