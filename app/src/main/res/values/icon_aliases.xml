@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Os nomes antigos também resolvem para a marca personalizada. -->
+    <item type="mipmap" name="ic_launcher">@mipmap/icone</item>
+    <item type="mipmap" name="ic_launcher_round">@mipmap/icone_round</item>
+</resources>

@@ -1,7 +1,48 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Rastro" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+        <!-- ===== Primária (roxo da marca, versão clara p/ contraste no escuro) ===== -->
+        <item name="colorPrimary">#8B7CFF</item>
+        <item name="colorOnPrimary">#F4F5F8</item>
+        <item name="colorPrimaryContainer">#332866</item>          <!-- derivada: tonalidade escura da primária -->
+        <item name="colorOnPrimaryContainer">#8B7CFF</item>        <!-- derivada, mesmo tom da primária -->
+
+        <!-- ===== Secundária (neutro/texto e ícones de apoio) ===== -->
+        <item name="colorSecondary">#9AA3B2</item>
+        <item name="colorOnSecondary">#08090D</item>
+        <item name="colorSecondaryContainer">#2A2F3D</item>        <!-- borda/realce neutro dos cards -->
+        <item name="colorOnSecondaryContainer">#9AA3B2</item>
+
+        <!-- ===== Terciária (positivo/receita/economia, verde) ===== -->
+        <item name="colorTertiary">#34D399</item>
+        <item name="colorOnTertiary">#07271B</item>                <!-- derivada: texto escuro sobre o verde claro -->
+        <item name="colorTertiaryContainer">#132A22</item>
+        <item name="colorOnTertiaryContainer">#34D399</item>
+
+        <!-- ===== Erro (negativo/despesa, vermelho) ===== -->
+        <item name="colorError">#F87171</item>
+        <item name="colorOnError">#2A0A0A</item>                   <!-- derivada: texto escuro sobre o vermelho claro -->
+        <item name="colorErrorContainer">#2A1515</item>
+        <item name="colorOnErrorContainer">#F87171</item>
+
+        <!-- ===== Fundo e superfícies ===== -->
+        <item name="android:colorBackground">#08090D</item>        <!-- fundo geral das telas -->
+        <item name="colorOnBackground">#F4F5F8</item>              <!-- texto principal -->
+        <item name="colorSurface">#1A1D28</item>                   <!-- cards, campos de entrada, barra de navegação inferior -->
+        <item name="colorOnSurface">#F4F5F8</item>
+        <item name="colorSurfaceVariant">#2A2F3D</item>            <!-- preenchimento sutil sobre superfícies -->
+        <item name="colorOnSurfaceVariant">#9AA3B2</item>          <!-- texto secundário (rótulos, rodapés) -->
+
+        <!-- ===== Contornos ===== -->
+        <item name="colorOutline">#2A2F3D</item>                   <!-- bordas dos cards e divisores -->
+        <item name="colorOutlineVariant">#20242E</item>            <!-- derivada: divisor ainda mais sutil -->
+
+        <!-- ===== Janela / barras de sistema ===== -->
+        <item name="android:windowBackground">?attr/android:colorBackground</item>
+        <item name="android:statusBarColor">?attr/android:colorBackground</item>
+        <item name="android:navigationBarColor">?attr/android:colorBackground</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 </resources>
