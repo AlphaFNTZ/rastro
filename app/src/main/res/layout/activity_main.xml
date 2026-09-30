@@ -27,7 +27,7 @@
       android:layout_height="wrap_content"
       android:orientation="vertical"
       android:paddingHorizontal="20dp"
-      android:paddingTop="20dp">
+      android:paddingTop="20dp" android:clickable="true" android:focusable="false">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

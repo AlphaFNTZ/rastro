@@ -22,17 +22,14 @@ object NavegacaoInferior {
             activity.findViewById<ImageView>(iconId).setColorFilter(ContextCompat.getColor(activity,
                 if (selecionado) R.color.nav_item_selected_fg else R.color.nav_icon_unselected))
             item.setOnClickListener {
-                if (selecionado) return@setOnClickListener
-                val destino = when (aba) {
-                    AbaNavegacao.HOME -> MainActivity::class.java
-                    AbaNavegacao.DISPOSITIVOS -> DispositivosActivity::class.java
-                    AbaNavegacao.HISTORICO -> HistoricoActivity::class.java
+                if (activity is MainActivity) activity.selecionarAba(aba)
+                else if (!selecionado) {
+                    // Compatibility for explicit launches of the former standalone screens.
+                    activity.startActivity(Intent(activity, MainActivity::class.java)
+                        .putExtra(MainActivity.EXTRA_ABA, aba.ordinal)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+                    activity.finish()
                 }
-                activity.startActivity(Intent(activity, destino).addFlags(
-                    if (aba == AbaNavegacao.HOME) Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    else Intent.FLAG_ACTIVITY_SINGLE_TOP))
-                // A principal é a raiz; não acumular telas de abas ao navegar.
-                if (activity !is MainActivity) activity.finish()
             }
         }
     }

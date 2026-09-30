@@ -18,20 +18,32 @@ enum class TipoEnlaceUi { DIRETO, INDIRETO, BAIXO }
 data class DispositivoVisual(val nome: String, val detalhes: String, val completo: String, val tipo: TipoEnlaceUi)
 
 class DispositivosActivity : TelaRastroActivity() {
-    private var listaCompleta: List<DispositivoVisual> = emptyList()
-    private val adapter = DispositivosAdapter()
+    private lateinit var pagina: PaginaDispositivos
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_dispositivos)
         aplicarInsets(R.id.layout_dispositivos)
-        findViewById<View>(R.id.btn_chat).setOnClickListener { startActivity(android.content.Intent(this, ChatActivity::class.java)) }
+        pagina = PaginaDispositivos(this, findViewById(R.id.layout_dispositivos))
         NavegacaoInferior.configurar(this, AbaNavegacao.DISPOSITIVOS)
-        findViewById<RecyclerView>(R.id.rv_dispositivos).apply { layoutManager = LinearLayoutManager(this@DispositivosActivity); adapter = this@DispositivosActivity.adapter }
-        findViewById<EditText>(R.id.et_buscar_dispositivos).doAfterTextChanged { filtrar(it?.toString().orEmpty()) }
         renderizar(estadoAtual)
     }
-    override fun renderizar(estado: EstadoRastro) {
+    override fun renderizar(estado: EstadoRastro) { pagina.renderizar(estado) }
+}
+class PaginaDispositivos(private val activity: android.app.Activity, private val root: View) {
+    private fun <T : View> findViewById(id: Int): T = root.findViewById(id)
+    private fun getString(id: Int) = activity.getString(id)
+    private var listaCompleta: List<DispositivoVisual> = emptyList()
+    private val adapter = DispositivosAdapter()
+    init {
+        findViewById<View>(R.id.btn_chat).setOnClickListener { activity.startActivity(android.content.Intent(activity, ChatActivity::class.java)) }
+        findViewById<RecyclerView>(R.id.rv_dispositivos).apply {
+            layoutManager = LinearLayoutManager(activity)
+            adapter = this@PaginaDispositivos.adapter
+        }
+        findViewById<EditText>(R.id.et_buscar_dispositivos).doAfterTextChanged { filtrar(it?.toString().orEmpty()) }
+    }
+    fun renderizar(estado: EstadoRastro) {
         findViewById<TextView>(R.id.tv_data_dispositivos).text = HistoricoActivity.rotuloDia(LocalDate.now())
         listaCompleta = estado.vizinhos.map { v ->
             val situacao = when (v.estado) { EstadoVizinho.DESCOBERTO -> "Descoberto"; EstadoVizinho.CONECTANDO -> "Conectando"; EstadoVizinho.CONECTADO -> "Conectado" }

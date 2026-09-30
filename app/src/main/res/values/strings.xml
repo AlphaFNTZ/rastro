@@ -22,7 +22,7 @@
 
     <!-- Strings do Design e Novas Telas -->
     <string name="greeting_format">Olá, %1$s</string>
-    <string name="default_user_name">Juliano</string>
+    <string name="default_user_name">Usuário</string>
     <string name="activate_rastro_mode">Ativar o modo rastro</string>
     <string name="deactivate_rastro_mode">Desativar</string>
 

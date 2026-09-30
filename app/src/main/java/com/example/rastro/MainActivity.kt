@@ -16,6 +16,12 @@ import com.example.rastro.service.RastroService
 
 class MainActivity : TelaRastroActivity() {
     private lateinit var controlesMapa: ControlesMapa
+    private lateinit var paginas: PaginasPrincipais
+    private lateinit var dispositivos: PaginaDispositivos
+    private lateinit var historico: PaginaHistorico
+    private val voltarInicio = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() { selecionarAba(AbaNavegacao.HOME) }
+    }
     private var acaoPendente: String? = null
     private val permissoes = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (permissoesObrigatorias().all(::permitida)) iniciarRastro()
@@ -24,10 +30,47 @@ class MainActivity : TelaRastroActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        aplicarInsets(R.id.main)
+        setContentView(R.layout.activity_paginas)
+        aplicarInsets(R.id.paginas_root)
+        paginas = findViewById(R.id.paginas)
+        val layouts = listOf(R.layout.activity_main, R.layout.activity_dispositivos, R.layout.activity_historico)
+        val views = layouts.map { layoutInflater.inflate(it, paginas, false) }
+        views.forEach { root ->
+            root.findViewById<View>(R.id.bottom_navigation_bar)?.let { (it.parent as android.view.ViewGroup).removeView(it) }
+        }
+        paginas.offscreenPageLimit = 2
+        paginas.adapter = object : androidx.viewpager.widget.PagerAdapter() {
+            override fun getCount() = views.size
+            override fun isViewFromObject(view: View, item: Any) = view === item
+            override fun instantiateItem(container: android.view.ViewGroup, position: Int): Any =
+                views[position].also { if(it.parent == null) container.addView(it) }
+            override fun destroyItem(container: android.view.ViewGroup, position: Int, item: Any) {
+                container.removeView(item as View)
+            }
+            override fun getPageTitle(position: Int): CharSequence =
+                getString(listOf(R.string.nav_home,R.string.nav_devices,R.string.nav_history)[position])
+        }
+        // Attach the retained pages before map/control initialization uses findViewById.
+        views.forEach { paginas.addView(it) }
+        dispositivos = PaginaDispositivos(this, views[1])
+        historico = PaginaHistorico(this, views[2])
+        paginas.addOnPageChangeListener(object : androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener() {
+            override fun onPageSelected(position: Int) {
+                NavegacaoInferior.configurar(this@MainActivity, AbaNavegacao.entries[position])
+                voltarInicio.isEnabled = position != 0
+                currentFocus?.let {
+                    (getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
+                        .hideSoftInputFromWindow(it.windowToken, 0)
+                    it.clearFocus()
+                }
+            }
+        })
+        onBackPressedDispatcher.addCallback(this, voltarInicio)
+        paginas.setCurrentItem((savedInstanceState?.getInt(EXTRA_ABA) ?: intent.getIntExtra(EXTRA_ABA,0)).coerceIn(0,2),false)
+        voltarInicio.isEnabled = paginas.currentItem != 0
+
         controlesMapa = ControlesMapa(this, savedInstanceState)
-        NavegacaoInferior.configurar(this, AbaNavegacao.HOME)
+        NavegacaoInferior.configurar(this, AbaNavegacao.entries[paginas.currentItem])
         findViewById<View>(R.id.btn_configuracao).setOnClickListener { startActivity(Intent(this, ConfiguracaoActivity::class.java)) }
         findViewById<View>(R.id.btn_ativar_rastro).setOnClickListener {
             val faltantes = (permissoesObrigatorias() + listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION) +
@@ -48,9 +91,11 @@ class MainActivity : TelaRastroActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        selecionarAba(AbaNavegacao.entries[intent.getIntExtra(EXTRA_ABA,0).coerceIn(0,2)])
         acaoPendente = intent.getStringExtra(EXTRA_MAPA)
         executarAcaoMapa()
     }
+    fun selecionarAba(aba: AbaNavegacao) { paginas.setCurrentItem(aba.ordinal, true) }
     private fun executarAcaoMapa() {
         val acao = acaoPendente ?: return
         controlesMapa.executar(acao)
@@ -62,10 +107,12 @@ class MainActivity : TelaRastroActivity() {
     override fun onPause() { controlesMapa.mapa.onPause(); super.onPause() }
     override fun onStop() { controlesMapa.pararObservarOffline(); controlesMapa.mapa.onStop(); super.onStop() }
     override fun onLowMemory() { super.onLowMemory(); controlesMapa.mapa.onLowMemory() }
-    override fun onSaveInstanceState(out: Bundle) { controlesMapa.mapa.salvar(out); out.putString(EXTRA_MAPA, acaoPendente); super.onSaveInstanceState(out) }
+    override fun onSaveInstanceState(out: Bundle) { controlesMapa.mapa.salvar(out); out.putInt(EXTRA_ABA, paginas.currentItem); out.putString(EXTRA_MAPA, acaoPendente); super.onSaveInstanceState(out) }
     override fun onDestroy() { controlesMapa.destruir(); super.onDestroy() }
 
     override fun renderizar(estado: EstadoRastro) {
+        dispositivos.renderizar(estado)
+        historico.renderizar(estado)
         findViewById<TextView>(R.id.texto_boas_vindas).text = if (estado.nomeLocal.isBlank()) getString(R.string.greeting_initial) else getString(R.string.greeting_format, estado.nomeLocal)
         findViewById<View>(R.id.btn_ativar_rastro).visibility = if (estado.ativo) View.GONE else View.VISIBLE
         findViewById<View>(R.id.layout_acoes_ativado).visibility = if (estado.ativo) View.VISIBLE else View.GONE
@@ -90,5 +137,5 @@ class MainActivity : TelaRastroActivity() {
         if (Build.VERSION.SDK_INT < 29) add(Manifest.permission.ACCESS_COARSE_LOCATION)
         if (Build.VERSION.SDK_INT >= 37) add("android.permission.ACCESS_LOCAL_NETWORK")
     }
-    companion object { const val EXTRA_MAPA = "rastro.acao_mapa" }
+    companion object { const val EXTRA_MAPA = "rastro.acao_mapa"; const val EXTRA_ABA = "rastro.aba" }
 }

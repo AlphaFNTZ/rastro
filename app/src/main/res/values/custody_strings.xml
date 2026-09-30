@@ -4,4 +4,13 @@
     <string name="custody_description">Com o Rastro ativo, guarde mensagens cifradas e entregue quando encontrar o destinatário diretamente. Desativar recusa novas custódias, mas mantém a entrega das já aceitas. Não há repasse entre portadores.</string>
     <string name="custody_empty">Nenhum pacote aguardando entrega ou retorno de confirmação.</string>
     <string name="custody_remove">Remover cópia local</string>
+    <string name="custody_participation">Participação na rede</string>
+    <string name="custody_storage">Armazenamento</string>
+    <string name="custody_pending">Pacotes e confirmações</string>
+    <string name="custody_usage">%1$d de 128 pacotes · %2$d KiB de 2.048 KiB</string>
+    <string name="custody_packet_title">Pacote %1$s</string>
+    <string name="custody_packet_route">%1$s → %2$s</string>
+    <string name="custody_packet_receipt">Levando confirmação à origem</string>
+    <string name="custody_packet_waiting">Aguardando encontro direto com o destinatário</string>
+    <string name="custody_packet_expiry">Validade restante: %1$d h</string>
 </resources>

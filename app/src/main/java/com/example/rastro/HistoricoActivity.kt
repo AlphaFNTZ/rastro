@@ -16,16 +16,34 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class HistoricoActivity : TelaRastroActivity() {
-    private val adapter = HistoricoAdapter()
+    private lateinit var pagina: PaginaHistorico
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_historico)
         aplicarInsets(R.id.layout_historico)
+        pagina = PaginaHistorico(this, findViewById(R.id.layout_historico))
         NavegacaoInferior.configurar(this, AbaNavegacao.HISTORICO)
-        findViewById<RecyclerView>(R.id.rv_historico).apply { layoutManager = LinearLayoutManager(this@HistoricoActivity); adapter = this@HistoricoActivity.adapter }
     }
-    override fun renderizar(estado: EstadoRastro) {
+    override fun renderizar(estado: EstadoRastro) { pagina.renderizar(estado) }    companion object {
+        fun rotuloDia(dia: LocalDate): String {
+            val locale = Locale.forLanguageTag("pt-BR")
+            val padrao = if (dia.year == LocalDate.now().year) "d 'de' MMMM" else "d 'de' MMMM 'de' yyyy"
+            return ((if (dia == LocalDate.now()) "Hoje, " else "") + dia.format(DateTimeFormatter.ofPattern(padrao, locale))).uppercase(locale)
+        }
+    }
+}
+
+class PaginaHistorico(activity: android.app.Activity, private val root: View) {
+    private fun <T : View> findViewById(id: Int): T = root.findViewById(id)
+    private val adapter = HistoricoAdapter()
+    init {
+        findViewById<RecyclerView>(R.id.rv_historico).apply {
+            layoutManager = LinearLayoutManager(activity)
+            adapter = this@PaginaHistorico.adapter
+        }
+    }
+    fun renderizar(estado: EstadoRastro) {
         adapter.submitList(estado.eventos.asReversed())
         findViewById<View>(R.id.tv_historico_vazio).visibility = if (estado.eventos.isEmpty()) View.VISIBLE else View.GONE
     }
@@ -41,7 +59,7 @@ class HistoricoActivity : TelaRastroActivity() {
             val evento = itens[position]
             val dia = Instant.ofEpochMilli(evento.registradoEmEpochMs).atZone(ZoneId.systemDefault()).toLocalDate()
             val anterior = itens.getOrNull(position - 1)?.let { Instant.ofEpochMilli(it.registradoEmEpochMs).atZone(ZoneId.systemDefault()).toLocalDate() }
-            holder.bind(evento, if (dia != anterior) rotuloDia(dia) else null, position == 0)
+            holder.bind(evento, if (dia != anterior) HistoricoActivity.rotuloDia(dia) else null, position == 0)
         }
         class Holder(view: View) : RecyclerView.ViewHolder(view) {
             fun bind(e: EventoRastro, dia: String?, primeiro: Boolean) {
@@ -61,13 +79,6 @@ class HistoricoActivity : TelaRastroActivity() {
                     MaterialAlertDialogBuilder(itemView.context).setTitle(tipo).setView(android.widget.ScrollView(itemView.context).apply { addView(texto) }).setPositiveButton("Fechar", null).show()
                 }
             }
-        }
-    }
-    companion object {
-        fun rotuloDia(dia: LocalDate): String {
-            val locale = Locale.forLanguageTag("pt-BR")
-            val padrao = if (dia.year == LocalDate.now().year) "d 'de' MMMM" else "d 'de' MMMM 'de' yyyy"
-            return ((if (dia == LocalDate.now()) "Hoje, " else "") + dia.format(DateTimeFormatter.ofPattern(padrao, locale))).uppercase(locale)
         }
     }
 }

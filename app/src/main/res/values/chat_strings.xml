@@ -8,4 +8,6 @@
     <string name="chat_send">Enviar</string>
     <string name="chat_open">Conversas privadas</string>
     <string name="chat_camera_denied">Sem acesso à câmera, não é possível ler o QR Code. Você ainda pode mostrar seu código e consultar conversas.</string>
+    <string name="chat_contacts_section">Contatos verificados</string>
+    <string name="chat_contact_details">%1$s · Verificado por QR Code\nSegure para ver os detalhes</string>
 </resources>

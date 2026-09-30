@@ -1,21 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/chat_root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="?attr/android:colorBackground">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:orientation="vertical">
-        <com.google.android.material.button.MaterialButton android:id="@+id/chat_back" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/chat_back" />
-        <TextView android:id="@+id/chat_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/chat_title" android:textSize="24sp" android:textStyle="bold" />
-        <TextView android:id="@+id/chat_state" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="8dp" android:textSize="13sp" android:accessibilityLiveRegion="polite" />
-        <LinearLayout android:id="@+id/chat_contact_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton android:id="@+id/chat_my_qr" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/chat_my_qr" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/chat_scan" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="@string/chat_scan" />
-        </LinearLayout>
-        <com.google.android.material.button.MaterialButton android:id="@+id/chat_carrier" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/custody_title" />
-        <TextView android:id="@+id/chat_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="@string/chat_empty" />
-    </LinearLayout>
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/chat_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:paddingHorizontal="16dp" android:clipToPadding="false" />
-    <LinearLayout android:id="@+id/chat_composer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp" android:visibility="gone">
-        <EditText android:id="@+id/chat_text" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="48dp" android:maxLines="4" android:maxLength="2048" android:inputType="textMultiLine|textCapSentences|textNoSuggestions" android:hint="@string/chat_hint" android:importantForAutofill="no" android:saveEnabled="false" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/chat_send" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/chat_send" />
-    </LinearLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/chat_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="?attr/android:colorBackground">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:paddingHorizontal="20dp" android:paddingTop="20dp" android:paddingBottom="12dp">
+<androidx.appcompat.widget.AppCompatImageButton android:id="@+id/chat_back" style="@style/Rastro.IconButton" android:src="@drawable/ic_arrow_back" android:contentDescription="@string/chat_back" app:tint="?attr/colorOnSurfaceVariant"/>
+<TextView android:id="@+id/chat_title" style="@style/Rastro.ScreenTitle" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="15dp" android:textSize="20sp" android:text="@string/chat_title"/>
+</LinearLayout>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="20dp">
+<TextView android:id="@+id/chat_state" style="@style/Rastro.SupportingText" android:paddingBottom="12dp" android:accessibilityLiveRegion="polite"/>
+<LinearLayout android:id="@+id/chat_contact_actions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false">
+<com.google.android.material.button.MaterialButton android:id="@+id/chat_my_qr" style="@style/Rastro.SecondaryAction" android:layout_width="0dp" android:layout_weight="1" android:text="@string/chat_my_qr"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/chat_scan" style="@style/Rastro.Action" android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="10dp" android:text="@string/chat_scan"/>
+</LinearLayout>
+<com.google.android.material.card.MaterialCardView style="@style/Rastro.SettingsCard" android:layout_marginTop="12dp">
+<LinearLayout android:id="@+id/chat_carrier" style="@style/Rastro.SettingsRow">
+<ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_nav_history" android:contentDescription="@null" app:tint="?attr/colorPrimary"/>
+<TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginHorizontal="12dp" android:text="@string/custody_title" android:textColor="?attr/colorOnSurface" android:textSize="15sp"/>
+<ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" android:contentDescription="@null" app:tint="?attr/colorOnSurfaceVariant"/>
+</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+<TextView style="@style/Rastro.Section" android:text="@string/chat_contacts_section"/>
+</LinearLayout>
+</LinearLayout>
+<FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+<androidx.recyclerview.widget.RecyclerView android:id="@+id/chat_list" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingHorizontal="20dp" android:paddingBottom="16dp" android:clipToPadding="false"/>
+<TextView android:id="@+id/chat_empty" style="@style/Rastro.EmptyState" android:layout_marginHorizontal="20dp" android:layout_marginTop="32dp" android:text="@string/chat_empty"/>
+</FrameLayout>
+<LinearLayout android:id="@+id/chat_composer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="bottom" android:background="?attr/colorSurface" android:paddingHorizontal="20dp" android:paddingVertical="12dp" android:visibility="gone">
+<EditText android:id="@+id/chat_text" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="50dp" android:background="@drawable/bg_search_input" android:paddingHorizontal="14dp" android:paddingVertical="12dp" android:textSize="15sp" android:textColor="?attr/colorOnSurface" android:textColorHint="?attr/colorOnSurfaceVariant" android:maxLines="4" android:maxLength="2048" android:inputType="textMultiLine|textCapSentences|textNoSuggestions" android:hint="@string/chat_hint" android:importantForAutofill="no" android:saveEnabled="false"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/chat_send" style="@style/Rastro.Action" android:layout_width="wrap_content" android:layout_marginStart="10dp" android:text="@string/chat_send"/>
+</LinearLayout>
 </LinearLayout>

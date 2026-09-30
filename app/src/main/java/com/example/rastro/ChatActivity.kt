@@ -118,8 +118,8 @@ class ChatActivity : TelaRastroActivity() {
                 empty(contacts.isEmpty(),getString(R.string.chat_empty))
                 rows.show(contacts.map { entry ->
                     val c = entry.contact
-                    Row("${entry.alias}\n${c.id.take(16)} · Verificado por QR Code\nToque para conversar; segure para detalhes.",
-                        { peer = c.id; peerName = entry.alias; refresh() }, { editAlias(entry) })
+                    Row(entry.alias, getString(R.string.chat_contact_details, c.id.take(16)),
+                        click = { peer = c.id; peerName = entry.alias; refresh() }, longClick = { editAlias(entry) })
                 })
             }, { message("Não foi possível abrir os contatos protegidos") })
         } else chat.lines(selected) { result ->
@@ -128,20 +128,58 @@ class ChatActivity : TelaRastroActivity() {
                 empty(lines.isEmpty(),"Nenhuma mensagem. Confirme que o contato também cadastrou seu QR Code.")
                 rows.show(lines.map { line ->
                     val state = when(line.status) { "DELIVERED" -> "Entrega confirmada"; "WAITING" -> "Aguardando conexão"; "AWAITING_ACK" -> "Aguardando confirmação do destinatário"; "CUSTODY_PENDING" -> "Custódia em confirmação"; "CARRIED" -> "Copiada para portador; aguardando destinatário"; "EXPIRED" -> "Expirada sem confirmação"; else -> "Recebida" }
-                    Row("${if(line.outgoing) "Você" else peerName} · ${time(line.created)}\n${line.text}\n$state${if(!line.outgoing) " · recebida ${time(line.received)}" else ""}")
+                    Row(if(line.outgoing) "Você" else peerName,
+                        "${time(line.created)} · $state${if(!line.outgoing) "\nRecebida ${time(line.received)}" else ""}",
+                        body = line.text, outgoing = line.outgoing)
                 })
             }, { message("Não foi possível abrir a conversa protegida") })
         }
     }
     private fun empty(show: Boolean, text: String) { findViewById<TextView>(R.id.chat_empty).apply { visibility = if(show) View.VISIBLE else View.GONE; this.text = text } }
     private fun time(value: Long) = DateTimeFormatter.ofPattern("dd/MM HH:mm:ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(value))
-    private data class Row(val text: String, val click: (() -> Unit)? = null, val longClick: (() -> Unit)? = null)
+    private data class Row(
+        val title: String,
+        val details: String,
+        val body: String? = null,
+        val outgoing: Boolean = false,
+        val click: (() -> Unit)? = null,
+        val longClick: (() -> Unit)? = null
+    )
     private class Rows : RecyclerView.Adapter<Rows.Holder>() {
         private var rows = emptyList<Row>()
-        class Holder(val text: TextView) : RecyclerView.ViewHolder(text)
-        fun show(value: List<Row>) { if(rows.map { it.text } == value.map { it.text }) return; rows = value; notifyDataSetChanged() }
+        class Holder(view: View) : RecyclerView.ViewHolder(view)
+        fun show(value: List<Row>) {
+            val unchanged = rows.map { listOf(it.title,it.details,it.body,it.outgoing) } ==
+                value.map { listOf(it.title,it.details,it.body,it.outgoing) }
+            rows = value
+            if(!unchanged) notifyDataSetChanged()
+        }
         override fun getItemCount() = rows.size
-        override fun onCreateViewHolder(parent: ViewGroup, type: Int) = Holder(TextView(parent.context).apply { layoutParams = RecyclerView.LayoutParams(-1,-2); setPadding(12,24,12,24); textSize = 16f })
-        override fun onBindViewHolder(holder: Holder, position: Int) { val row = rows[position]; holder.text.text = row.text; holder.text.setOnLongClickListener(if(row.longClick == null) null else View.OnLongClickListener { row.longClick.invoke(); true }); holder.text.setTextIsSelectable(row.click == null); holder.text.setOnClickListener(if(row.click == null) null else View.OnClickListener { row.click.invoke() }) }
+        override fun getItemViewType(position: Int) = if(rows[position].body == null) 0 else 1
+        override fun onCreateViewHolder(parent: ViewGroup, type: Int) = Holder(
+            android.view.LayoutInflater.from(parent.context).inflate(
+                if(type == 0) R.layout.item_chat_contact else R.layout.item_chat_message, parent, false))
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val row = rows[position]
+            val view = holder.itemView
+            if(row.body == null) {
+                view.findViewById<TextView>(R.id.contact_name).text = row.title
+                view.findViewById<TextView>(R.id.contact_details).text = row.details
+                view.setOnClickListener { row.click?.invoke() }
+                view.setOnLongClickListener { row.longClick?.invoke(); true }
+            } else {
+                view.findViewById<TextView>(R.id.message_author).text = row.title
+                view.findViewById<TextView>(R.id.message_body).text = row.body
+                view.findViewById<TextView>(R.id.message_details).text = row.details
+                val card = view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.message_card)
+                val background = if(row.outgoing) com.google.android.material.R.attr.colorPrimaryContainer else com.google.android.material.R.attr.colorSurface
+                card.setCardBackgroundColor(com.google.android.material.color.MaterialColors.getColor(card, background))
+                val margin = (24 * view.resources.displayMetrics.density).toInt()
+                card.layoutParams = (card.layoutParams as FrameLayout.LayoutParams).apply {
+                    marginStart = if(row.outgoing) margin else 0
+                    marginEnd = if(row.outgoing) 0 else margin
+                }
+            }
+        }
     }
 }

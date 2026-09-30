@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.viewpager)
     implementation(libs.tink.android)
     implementation(libs.zxing.embedded)
     implementation(libs.androidx.activity.ktx)
