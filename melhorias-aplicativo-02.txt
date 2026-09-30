@@ -1,0 +1,12 @@
+Proximos passos do aplicativo:
+
+- Criar um sistema de chat privado entre os dispositivos conectados a rede:
+	- Manter um nivel de segurança na transmissão da mensagem entre os dipositivos;
+	- Garantir que nenhum aplicativo que vá servir de intermediario á mensagem não consiga ter acesso a mensagem a não ser que ele seja o destinatario;
+	- Esse chat vai funcionar de uma maneira simples podendo por enquanto mandar somente mensagens de texto;
+
+- Criar um sistema que permita um dispositivo carregar a mensagem de um usuario e ficar procurando o seu destinatario para entregar a mensagem:
+	- Primeiro vai ter que ter um sistema de salvar dispositivos conhecidos anteriormente na rede (como se fosse contatos do Whatsapp);
+	- Os dispositivos que tiverem o aplicativo instalado vai também funcionar como se fosse uma especie de portador de mensagens;
+	- A ideia principal é se caso um usuario queira mandar uma mensagem para um dispositivo que já foi conhecido na rede, mas que não está no alcance no momento possa ser enviado atráves de um portador;
+	- Dessa maneira os dispostivos vai ter uma "caixa de correspondencia" de via dupla, servindo tanto para enviar quanto para receber mensagens de portadores.
