@@ -100,3 +100,13 @@ Existe apenas um projeto Gradle: configurações e wrapper ficam na raiz, códig
 recursos em `app/src`, e documentação em `docs`. A cópia inicial `app/app` e as
 configurações Gradle duplicadas em `app/` foram removidas; seus ícones personalizados
 foram preservados no aplicativo atual.
+
+## Chat privado — Melhorias 02, Parte 1
+
+Em **Dispositivos → Conversas privadas**, cadastre os contatos presencialmente por
+QR Code nos dois aparelhos. Ative o Rastro para enviar texto diretamente ou pela
+malha conectada. O histórico e a caixa de saída são persistentes; intermediários
+não possuem as chaves para ler o texto nem guardam pacotes para encontros futuros.
+
+Consulte [uso, protocolo e validação](docs/MELHORIAS_02_PARTE1.md). Portadores com
+entrega posterior pertencem à Parte 2, ainda não implementada.

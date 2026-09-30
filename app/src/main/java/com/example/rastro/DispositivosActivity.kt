@@ -25,6 +25,7 @@ class DispositivosActivity : TelaRastroActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_dispositivos)
         aplicarInsets(R.id.layout_dispositivos)
+        findViewById<View>(R.id.btn_chat).setOnClickListener { startActivity(android.content.Intent(this, ChatActivity::class.java)) }
         NavegacaoInferior.configurar(this, AbaNavegacao.DISPOSITIVOS)
         findViewById<RecyclerView>(R.id.rv_dispositivos).apply { layoutManager = LinearLayoutManager(this@DispositivosActivity); adapter = this@DispositivosActivity.adapter }
         findViewById<EditText>(R.id.et_buscar_dispositivos).doAfterTextChanged { filtrar(it?.toString().orEmpty()) }

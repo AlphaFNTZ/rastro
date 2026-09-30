@@ -1,0 +1,11 @@
+<resources>
+    <string name="chat_title">Contatos e conversas</string>
+    <string name="chat_back">Voltar</string>
+    <string name="chat_my_qr">Meu QR Code</string>
+    <string name="chat_scan">Ler QR Code</string>
+    <string name="chat_empty">Nenhum contato cadastrado. Leiam os QR Codes um do outro presencialmente para conversar.</string>
+    <string name="chat_hint">Mensagem (até 2.048 bytes)</string>
+    <string name="chat_send">Enviar</string>
+    <string name="chat_open">Conversas privadas</string>
+    <string name="chat_camera_denied">Sem acesso à câmera, não é possível ler o QR Code. Você ainda pode mostrar seu código e consultar conversas.</string>
+</resources>

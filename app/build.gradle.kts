@@ -32,6 +32,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.tink.android)
+    implementation(libs.zxing.embedded)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
@@ -40,6 +42,7 @@ dependencies {
     implementation(libs.google.play.services.nearby)
     implementation(libs.maplibre)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

@@ -71,6 +71,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
 
     fun interface Observador { fun atualizado(estado: EstadoRastro) }
 
+    private val chat by lazy { com.example.rastro.chat.ChatRuntime.get(this) }
     private val binder = LocalBinder()
     private val main = Handler(Looper.getMainLooper())
     private val buffer = CircularImuBuffer(500)
@@ -95,6 +96,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         override fun run() {
             if (!anunciosPresencaAtivos || !estado.ativo) return
             router.originar(Mensagem.presenca(noLocal, nomeLocal))
+            chat.tick()
             expirarRotas()
             atualizarIdadePosicao()
             main.postDelayed(this, INTERVALO_PRESENCA_MS)
@@ -165,6 +167,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         }
         iniciarForeground()
         transporte.iniciar()
+        chat.attach { bytes, except -> if (estado.ativo) transporte.enviarChat(bytes, except) }
         publicar(estado.copy(ativo = true, status = "Descoberta automática iniciada"))
         iniciarAnunciosPresenca()
         iniciarGnss()
@@ -314,6 +317,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
     }
 
     override fun vizinhosAlterados(vizinhos: List<Vizinho>) {
+        chat.connected(vizinhos.any { it.estado == EstadoVizinho.CONECTADO })
         val anteriores = estado.vizinhos.associateBy { it.identidade.id }
         vizinhos.filter { anteriores[it.identidade.id]?.estado != it.estado }.forEach {
             registrar("Estado do enlace: ${it.estado}", TipoEvento.CONEXAO, it.identidade)
@@ -332,6 +336,8 @@ class RastroService : Service(), NearbyTransport.Eventos {
             else -> "Procurando aparelhos próximos"
         }))
     }
+
+    override fun chatRecebido(endpointId: String, bytes: ByteArray) = chat.receive(bytes, endpointId)
 
     override fun recebida(endpointId: String, mensagem: Mensagem) = router.receber(endpointId, mensagem)
 
@@ -391,6 +397,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         pararSensores()
         if (gnssAtivo) localizacao.removeUpdates(gpsListener)
         gnssAtivo = false
+        chat.detach()
         transporte.close()
         pendentes.clear()
         rotasIndiretas.clear()
@@ -410,6 +417,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         imu.parar()
         consumidor?.shutdownNow()
         if (gnssAtivo) localizacao.removeUpdates(gpsListener)
+        chat.detach()
         transporte.close()
         main.removeCallbacksAndMessages(null)
         super.onDestroy()

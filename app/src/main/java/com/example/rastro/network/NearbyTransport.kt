@@ -32,6 +32,7 @@ class NearbyTransport(
         fun status(texto: String)
         fun vizinhosAlterados(vizinhos: List<Vizinho>)
         fun recebida(endpointId: String, mensagem: Mensagem)
+        fun chatRecebido(endpointId: String, bytes: ByteArray) {}
     }
 
     private val client: ConnectionsClient = Nearby.getConnectionsClient(context.applicationContext)
@@ -43,6 +44,10 @@ class NearbyTransport(
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             val bytes = payload.asBytes() ?: return
+            if (com.example.rastro.chat.ChatFrame.recognizes(bytes)) {
+                if (bytes.size <= com.example.rastro.chat.ChatFrame.MAX_BYTES) main.post { if (ativo) eventos.chatRecebido(endpointId, bytes) }
+                return
+            }
             val mensagem = runCatching { Mensagem.decodificar(bytes) }
                 .getOrElse {
                     publicarStatus("Mensagem inválida descartada de ${rotulo(endpointId)}")
@@ -153,6 +158,13 @@ class NearbyTransport(
             publicarStatus("Falha ao enfileirar mensagem: ${it.message ?: it.javaClass.simpleName}")
         }
         return destinos.size
+    }
+
+    fun enviarChat(bytes: ByteArray, excetoEndpoint: String? = null) {
+        if (!ativo || bytes.size > com.example.rastro.chat.ChatFrame.MAX_BYTES) return
+        val destinos = vizinhos.values.filter { it.estado == EstadoVizinho.CONECTADO && it.endpointId != excetoEndpoint }.map(Vizinho::endpointId)
+        if (destinos.isNotEmpty()) client.sendPayload(destinos, Payload.fromBytes(bytes))
+            .addOnFailureListener { publicarStatus("Chat aguardando nova tentativa de transmissão") }
     }
 
     fun quantidadeConectados(): Int = vizinhos.values.count { it.estado == EstadoVizinho.CONECTADO }
