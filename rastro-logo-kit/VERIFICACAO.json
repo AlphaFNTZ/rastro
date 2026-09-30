@@ -1,0 +1,13 @@
+{
+  "webp_files": 20,
+  "adaptive_xml_files": 4,
+  "monochrome_vector_files": 1,
+  "xml_resource_references_resolved": 10,
+  "all_density_sizes": "PASS",
+  "foreground_alpha": "PASS",
+  "opaque_background": "PASS",
+  "foreground_inside_66dp_safe_circle": "PASS",
+  "svg_no_live_text_or_rasters": "PASS",
+  "visual_review": "circle, rounded square, squircle and size ladder",
+  "gradle_build": "Not run: source project not supplied"
+}

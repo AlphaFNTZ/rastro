@@ -101,12 +101,17 @@ recursos em `app/src`, e documentação em `docs`. A cópia inicial `app/app` e 
 configurações Gradle duplicadas em `app/` foram removidas; seus ícones personalizados
 foram preservados no aplicativo atual.
 
-## Chat privado — Melhorias 02, Parte 1
+## Chat privado e portadores — Melhorias 02
 
 Em **Dispositivos → Conversas privadas**, cadastre os contatos presencialmente por
 QR Code nos dois aparelhos. Ative o Rastro para enviar texto diretamente ou pela
 malha conectada. O histórico e a caixa de saída são persistentes; intermediários
-não possuem as chaves para ler o texto nem guardam pacotes para encontros futuros.
+não possuem as chaves para ler o texto.
 
-Consulte [uso, protocolo e validação](docs/MELHORIAS_02_PARTE1.md). Portadores com
-entrega posterior pertencem à Parte 2, ainda não implementada.
+Consulte [chat, QR Code e validação da Parte 1](docs/MELHORIAS_02_PARTE1.md).
+
+Em **Conversas privadas → Caixa de correspondência**, habilite **Participar como
+portador** para guardar mensagens cifradas e entregá-las ao encontrar o destinatário
+diretamente. A Parte 2 mantém um portador por mensagem, além da cópia na origem,
+com cotas, validade e retorno persistente da confirmação. Consulte
+[uso, limites e testes da Parte 2](docs/MELHORIAS_02_PARTE2.md).

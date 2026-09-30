@@ -1,0 +1,7 @@
+<resources>
+    <string name="custody_title">Caixa de correspondência</string>
+    <string name="custody_mode">Participar como portador</string>
+    <string name="custody_description">Com o Rastro ativo, guarde mensagens cifradas e entregue quando encontrar o destinatário diretamente. Desativar recusa novas custódias, mas mantém a entrega das já aceitas. Não há repasse entre portadores.</string>
+    <string name="custody_empty">Nenhum pacote aguardando entrega ou retorno de confirmação.</string>
+    <string name="custody_remove">Remover cópia local</string>
+</resources>

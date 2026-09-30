@@ -167,7 +167,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         }
         iniciarForeground()
         transporte.iniciar()
-        chat.attach { bytes, except -> if (estado.ativo) transporte.enviarChat(bytes, except) }
+        chat.attach({ bytes, except -> if (estado.ativo) transporte.enviarChat(bytes, except) }, { endpoint,bytes -> if(estado.ativo) transporte.enviarCustodia(endpoint,bytes) })
         publicar(estado.copy(ativo = true, status = "Descoberta automática iniciada"))
         iniciarAnunciosPresenca()
         iniciarGnss()
@@ -317,7 +317,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
     }
 
     override fun vizinhosAlterados(vizinhos: List<Vizinho>) {
-        chat.connected(vizinhos.any { it.estado == EstadoVizinho.CONECTADO })
+        chat.connections(vizinhos.filter { it.estado == EstadoVizinho.CONECTADO }.map { it.endpointId }.toSet())
         val anteriores = estado.vizinhos.associateBy { it.identidade.id }
         vizinhos.filter { anteriores[it.identidade.id]?.estado != it.estado }.forEach {
             registrar("Estado do enlace: ${it.estado}", TipoEvento.CONEXAO, it.identidade)

@@ -13,7 +13,7 @@ Data: 30/09/2026. Plano: [melhorias-aplicativo-02.md](../melhorias-aplicativo-02
 - Retentativa de mensagens próprias enquanto o Rastro estiver ativo e houver enlaces.
 - Estados de espera, tentativa e entrega confirmada. Recriação da Activity não apaga o histórico persistido.
 
-A Parte 2 não foi implementada. Um retransmissor não grava pacotes de terceiros para encontros futuros. A fila persistente desta entrega pertence somente ao remetente e ao destinatário.
+Na entrega original da Parte 1, a Parte 2 ainda não estava implementada. Consulte agora a [implementação da Parte 2](MELHORIAS_02_PARTE2.md), que amplia o comportamento descrito neste registro histórico. Um retransmissor não grava pacotes de terceiros para encontros futuros. A fila persistente desta entrega pertence somente ao remetente e ao destinatário.
 
 ## Como usar
 
@@ -109,14 +109,12 @@ Comandos:
 
 Os testes locais incluem criptografia para destinatário correto, rejeição de falsificação/adulteração, parser, Unicode, limites, roteamento A → B → C, ACK autenticado, duplicatas, reabertura do SQLite, rollback, cota da fila e apelidos sem mudança de identidade. O SQLite é exercitado com Robolectric/API 28; isso não equivale a teste em aparelho.
 
-`ChatPersistenceTest` contém testes instrumentados de persistência e Android Keystore. O APK desses testes é compilado, mas sua execução requer um dispositivo:
+Validação posterior da Parte 1 em dispositivo: **13 testes instrumentados aprovados** no Samsung SM-S926B, Android 16/API 36. Foram cobertos persistência/Keystore, QR gerado e decodificado, navegação/recriação de telas e regressões de mapa e observadores. A identidade também foi conferida após encerramento e reabertura do processo. A instalação foi preservada ao final.
 
-```powershell
-.\gradlew.bat :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.rastro.ChatPersistenceTest
-```
+Na Parte 2, esses testes foram executados novamente junto aos três novos testes de custódia, totalizando **16 aprovados**. Veja [resultados e comandos atuais](MELHORIAS_02_PARTE2.md).
 
-Não havia aparelho conectado ou AVD configurado nesta sessão. Permanecem para validação física: leitura do QR pela câmera, comportamento do Keystore no dispositivo, inspeção visual, permissões, rádio A → B → C, tela bloqueada e bateria. Nenhum ensaio de alcance foi declarado realizado.
+Permanecem para ensaios físicos com múltiplos aparelhos: leitura de QR pela câmera, rádio em encontros separados, tela bloqueada e bateria. Nenhum ensaio de alcance foi declarado realizado.
 
-## Próxima entrega
+## Evolução posterior
 
-A Parte 2 deverá adicionar custódia durável de pacotes de terceiros e entrega diretamente ao destinatário. Não reutilizar o flooding conectado para implementar, inadvertidamente, repasse entre portadores. Consultar o plano para limites de cópias e complementos futuros.
+A [Parte 2](MELHORIAS_02_PARTE2.md) adicionou custódia durável de pacotes de terceiros e entrega diretamente ao destinatário. Não reutilizar o flooding conectado para implementar, inadvertidamente, repasse entre portadores. Consultar o plano para limites de cópias e complementos futuros.

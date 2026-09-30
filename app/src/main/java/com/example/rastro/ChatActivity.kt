@@ -47,6 +47,7 @@ class ChatActivity : TelaRastroActivity() {
         findViewById<RecyclerView>(R.id.chat_list).apply { layoutManager = LinearLayoutManager(this@ChatActivity); adapter = rows }
         findViewById<View>(R.id.chat_back).setOnClickListener { back() }
         onBackPressedDispatcher.addCallback(this,object : OnBackPressedCallback(true) { override fun handleOnBackPressed() { back() } })
+        findViewById<View>(R.id.chat_carrier).setOnClickListener { startActivity(android.content.Intent(this, CustodyActivity::class.java)) }
         findViewById<View>(R.id.chat_my_qr).setOnClickListener { showQr() }
         findViewById<View>(R.id.chat_scan).setOnClickListener {
             if(!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) message("Este aparelho não possui câmera disponível.")
@@ -126,7 +127,7 @@ class ChatActivity : TelaRastroActivity() {
             result.fold({ lines ->
                 empty(lines.isEmpty(),"Nenhuma mensagem. Confirme que o contato também cadastrou seu QR Code.")
                 rows.show(lines.map { line ->
-                    val state = when(line.status) { "DELIVERED" -> "Entrega confirmada"; "WAITING" -> "Aguardando conexão"; "AWAITING_ACK" -> "Aguardando confirmação do destinatário"; else -> "Recebida" }
+                    val state = when(line.status) { "DELIVERED" -> "Entrega confirmada"; "WAITING" -> "Aguardando conexão"; "AWAITING_ACK" -> "Aguardando confirmação do destinatário"; "CUSTODY_PENDING" -> "Custódia em confirmação"; "CARRIED" -> "Copiada para portador; aguardando destinatário"; "EXPIRED" -> "Expirada sem confirmação"; else -> "Recebida" }
                     Row("${if(line.outgoing) "Você" else peerName} · ${time(line.created)}\n${line.text}\n$state${if(!line.outgoing) " · recebida ${time(line.received)}" else ""}")
                 })
             }, { message("Não foi possível abrir a conversa protegida") })

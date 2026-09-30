@@ -9,6 +9,7 @@ import java.util.UUID
 
 /** Tink HPKE + ECDSA. No home-made encryption primitives. */
 class ChatCrypto(val encryption: KeysetHandle, val signing: KeysetHandle) {
+    fun sign(bytes: ByteArray): ByteArray = signing.getPrimitive(RegistryConfiguration.get(), PublicKeySign::class.java).sign(bytes)
     fun contact(name: String) = ChatContact(name, publicBytes(encryption), publicBytes(signing))
     fun seal(to: ChatContact, kind: String, plain: ByteArray, now: Long = System.currentTimeMillis()): ChatEnvelope {
         require(plain.size <= ChatEnvelope.MAX_TEXT_BYTES + 256)
@@ -23,6 +24,7 @@ class ChatCrypto(val encryption: KeysetHandle, val signing: KeysetHandle) {
         return encryption.getPrimitive(RegistryConfiguration.get(), HybridDecrypt::class.java).decrypt(envelope.cipher, envelope.header())
     }
     companion object {
+        fun verify(contact: ChatContact, bytes: ByteArray, signature: ByteArray) { publicHandle(contact.verification).getPrimitive(RegistryConfiguration.get(), PublicKeyVerify::class.java).verify(signature,bytes) }
         fun register() { HybridConfig.register(); SignatureConfig.register() }
         fun generate(): ChatCrypto { register(); return ChatCrypto(KeysetHandle.generateNew(KeyTemplates.get("DHKEM_X25519_HKDF_SHA256_HKDF_SHA256_AES_256_GCM")), KeysetHandle.generateNew(KeyTemplates.get("ECDSA_P256"))) }
         fun publicBytes(handle: KeysetHandle): ByteArray = TinkProtoKeysetFormat.serializeKeysetWithoutSecret(handle.publicKeysetHandle)

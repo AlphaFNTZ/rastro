@@ -11,14 +11,15 @@ data class ChatContactEntry(val contact: ChatContact, val alias: String, val add
 data class ChatLine(val id: String, val peer: String, val outgoing: Boolean, val created: Long, val received: Long, val text: String, val status: String)
 
 /** Accessed only on the chat worker. Protected columns use row-specific associated data. */
-class ChatStore(context: Context, private val vault: Aead, databaseName: String = "rastro-chat.db") : SQLiteOpenHelper(context, databaseName, null, 1) {
+class ChatStore(context: Context, private val vault: Aead, databaseName: String = "rastro-chat.db") : SQLiteOpenHelper(context, databaseName, null, 2) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE contacts(id TEXT PRIMARY KEY, qr BLOB NOT NULL, added INTEGER NOT NULL, last_seen INTEGER NOT NULL DEFAULT 0, alias BLOB)")
         db.execSQL("CREATE TABLE messages(id TEXT PRIMARY KEY, peer TEXT NOT NULL, outgoing INTEGER NOT NULL, created INTEGER NOT NULL, received INTEGER NOT NULL, body BLOB NOT NULL, envelope BLOB NOT NULL, status TEXT NOT NULL, attempted INTEGER NOT NULL DEFAULT 0, receipt BLOB)")
         db.execSQL("CREATE INDEX messages_peer ON messages(peer, received, id)")
         db.execSQL("CREATE INDEX messages_pending ON messages(outgoing, status, attempted)")
+        CustodyStore.create(db)
     }
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { error("Migração de chat não suportada: $oldVersion → $newVersion") }
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { require(oldVersion == 1 && newVersion == 2); CustodyStore.create(db) }
     private fun protect(value: String, aad: String) = vault.encrypt(value.toByteArray(), aad.toByteArray())
     private fun reveal(value: ByteArray, aad: String) = utf8(vault.decrypt(value, aad.toByteArray()))
     fun contacts(): List<ChatContact> = readableDatabase.rawQuery("SELECT id,qr FROM contacts ORDER BY added,id", null).use { c -> buildList { while (c.moveToNext()) add(ChatContact.parse(reveal(c.getBlob(1), "contact:${c.getString(0)}"))) } }
@@ -44,7 +45,7 @@ class ChatStore(context: Context, private val vault: Aead, databaseName: String 
     private fun room() { readableDatabase.rawQuery("SELECT count(*) FROM messages", null).use { it.moveToFirst(); check(it.getInt(0) < 10000) { "Histórico cheio (10.000 mensagens); nenhuma mensagem foi descartada" } } }
     fun outgoing(e: ChatEnvelope, text: String) {
         room()
-        readableDatabase.rawQuery("SELECT count(*) FROM messages WHERE outgoing=1 AND status!='DELIVERED'", null).use { it.moveToFirst(); check(it.getInt(0) < 128) { "Aguarde a entrega das mensagens pendentes (limite 128)" } }
+        readableDatabase.rawQuery("SELECT count(*) FROM messages WHERE outgoing=1 AND status NOT IN ('DELIVERED','EXPIRED')", null).use { it.moveToFirst(); check(it.getInt(0) < 128) { "Aguarde a entrega das mensagens pendentes (limite 128)" } }
         insert(e, text, true, "WAITING", null)
     }
     private fun insert(e: ChatEnvelope, text: String, outgoing: Boolean, status: String, receipt: ChatEnvelope?) {
@@ -85,7 +86,7 @@ class ChatStore(context: Context, private val vault: Aead, databaseName: String 
             db.setTransactionSuccessful()
         } finally { db.endTransaction() }
     }
-    fun pending(): List<ChatEnvelope> = readableDatabase.rawQuery("SELECT envelope FROM messages WHERE outgoing=1 AND status!='DELIVERED' ORDER BY attempted,received LIMIT 4", null).use { c -> buildList { while(c.moveToNext()) add(ChatEnvelope.decode(c.getBlob(0))) } }
-    fun attempted(id: String) { writableDatabase.execSQL("UPDATE messages SET attempted=?,status='AWAITING_ACK' WHERE id=? AND status!='DELIVERED'", arrayOf<Any>(System.currentTimeMillis(), id)) }
+    fun pending(): List<ChatEnvelope> = readableDatabase.rawQuery("SELECT envelope FROM messages WHERE outgoing=1 AND status NOT IN ('DELIVERED','EXPIRED') ORDER BY attempted,received LIMIT 4", null).use { c -> buildList { while(c.moveToNext()) add(ChatEnvelope.decode(c.getBlob(0))) } }
+    fun attempted(id: String) { writableDatabase.execSQL("UPDATE messages SET attempted=?,status=CASE WHEN status IN ('CUSTODY_PENDING','CARRIED') THEN status ELSE 'AWAITING_ACK' END WHERE id=? AND status NOT IN ('DELIVERED','EXPIRED')", arrayOf<Any>(System.currentTimeMillis(), id)) }
     fun lines(peer: String): List<ChatLine> = readableDatabase.rawQuery("SELECT id,outgoing,created,received,body,status FROM messages WHERE peer=? ORDER BY received DESC,rowid DESC LIMIT 200", arrayOf(peer)).use { c -> buildList { while(c.moveToNext()) add(ChatLine(c.getString(0), peer,c.getInt(1)==1,c.getLong(2),c.getLong(3),reveal(c.getBlob(4),"message:${c.getString(0)}"),c.getString(5))) }.reversed() }
 }

@@ -2,7 +2,7 @@
 
 Data: 30/09/2026.
 
-Status: Parte 1 implementada em software em 30/09/2026; veja [uso, arquitetura e limites da validação](docs/MELHORIAS_02_PARTE1.md). Parte 2 e evoluções futuras permanecem planejadas. Este documento substitui `melhorias-aplicativo-02.txt` e preserva os requisitos. Não representa auditoria de segurança ou validação física concluída.
+Status: Parte 1 implementada em software em 30/09/2026; veja [uso, arquitetura e limites da validação](docs/MELHORIAS_02_PARTE1.md). Parte 2 implementada em software; veja [portadores, uso e validação](docs/MELHORIAS_02_PARTE2.md). Evoluções futuras permanecem planejadas. Este documento substitui `melhorias-aplicativo-02.txt` e preserva os requisitos. Não representa auditoria de segurança ou validação física concluída.
 
 ## 1. Objetivo e decisões adotadas
 
