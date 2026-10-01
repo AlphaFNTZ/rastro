@@ -6,7 +6,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.example.rastro.service.EstadoRastro
 import com.example.rastro.sos.ApresentacaoSos
 import com.example.rastro.sos.EventoRastro

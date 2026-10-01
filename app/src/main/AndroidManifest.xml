@@ -68,6 +68,7 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CustodyActivity" android:exported="false" />
+        <activity android:name=".QrScanActivity" android:exported="false" android:screenOrientation="behind" android:configChanges="orientation|screenSize" />
     </application>
 
 </manifest>

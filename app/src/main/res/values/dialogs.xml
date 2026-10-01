@@ -1,0 +1,45 @@
+<resources>
+    <style name="ThemeOverlay.Rastro.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/Rastro.DialogSurface</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/Rastro.DialogTitle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/Rastro.DialogBody</item>
+        <item name="shapeAppearanceOverlay">@style/Rastro.DialogShape</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Rastro.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Rastro.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Rastro.DialogButton</item>
+        <item name="android:fontFamily">@font/jakarta</item>
+        <item name="fontFamily">@font/jakarta</item>
+    </style>
+    <style name="Rastro.DialogSurface" parent="MaterialAlertDialog.Material3">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+    <style name="Rastro.DialogShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+    <style name="Rastro.DialogTitle" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:fontFamily">@font/jakarta</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="Rastro.DialogBody" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:fontFamily">@font/jakarta</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    <style name="Rastro.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:fontFamily">@font/jakarta</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">15dp</item>
+    </style>
+    <string name="qr_scan_title">Ler QR Code</string>
+    <string name="qr_scan_instruction">Enquadre o QR Code do contato na área indicada.</string>
+    <string name="qr_scan_note">O código identifica o contato. Confirme os dados antes de cadastrar.</string>
+</resources>

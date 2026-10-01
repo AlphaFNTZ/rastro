@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/qr_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/android:colorBackground">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:padding="20dp">
+        <androidx.appcompat.widget.AppCompatImageButton android:id="@+id/qr_close"
+            style="@style/Rastro.IconButton" android:src="@drawable/ic_arrow_back"
+            android:contentDescription="@string/chat_back" app:tint="?attr/colorOnSurfaceVariant"/>
+        <TextView style="@style/Rastro.ScreenTitle" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_marginStart="15dp"
+            android:fontFamily="@font/jakarta" android:text="@string/qr_scan_title"/>
+    </LinearLayout>
+    <TextView style="@style/Rastro.SupportingText" android:text="@string/qr_scan_instruction"
+        android:paddingHorizontal="24dp" android:paddingBottom="16dp" android:fontFamily="@font/jakarta"/>
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxing_barcode_scanner" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:layout_marginHorizontal="20dp"
+        app:zxing_use_texture_view="true" app:zxing_preview_scaling_strategy="centerCrop"/>
+    <TextView style="@style/Rastro.SupportingText" android:text="@string/qr_scan_note"
+        android:gravity="center" android:padding="20dp" android:fontFamily="@font/jakarta"/>
+</LinearLayout>

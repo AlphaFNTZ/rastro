@@ -1,7 +1,7 @@
 <resources>
     <string name="custody_title">Caixa de correspondência</string>
     <string name="custody_mode">Participar como portador</string>
-    <string name="custody_description">Com o Rastro ativo, guarde mensagens cifradas e entregue quando encontrar o destinatário diretamente. Desativar recusa novas custódias, mas mantém a entrega das já aceitas. Não há repasse entre portadores.</string>
+    <string name="custody_description">Com o Rastro ativo, guarde mensagens cifradas e entregue quando encontrar o destinatário diretamente. Desativar recusa novas custódias, mas mantém a entrega das já aceitas. Mensagens novas podem ser repassadas com autorizações limitadas. Pacotes antigos continuam com entrega direta.</string>
     <string name="custody_empty">Nenhum pacote aguardando entrega ou retorno de confirmação.</string>
     <string name="custody_remove">Remover cópia local</string>
     <string name="custody_participation">Participação na rede</string>
@@ -13,4 +13,9 @@
     <string name="custody_packet_receipt">Levando confirmação à origem</string>
     <string name="custody_packet_waiting">Aguardando encontro direto com o destinatário</string>
     <string name="custody_packet_expiry">Validade restante: %1$d h</string>
+    <string name="custody_forward_active">Em transporte · %1$d autorização(ões) local(is) disponível(is)</string>
+    <string name="custody_forward_pending">Repasse em confirmação · %1$d pendente(s), %2$d disponível(is). O orçamento aguarda reconciliação.</string>
+    <string name="custody_forward_transferred">Responsabilidade repassada. Esta cópia ainda pode ser entregue diretamente.</string>
+    <string name="custody_forward_receipt">Transportando confirmação · %1$d autorização(ões) local(is)</string>
+    <string name="custody_budget_note">O uso inclui a fila própria e recibos. Há reserva de espaço para provas e confirmações; o limite pode ser atingido antes de 128 pacotes. A lista mostra o transporte de terceiros.</string>
 </resources>

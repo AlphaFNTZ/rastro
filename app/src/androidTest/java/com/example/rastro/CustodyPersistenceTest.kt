@@ -64,7 +64,7 @@ class CustodyPersistenceTest {
                 db.writableDatabase.version=1
             }
             ChatStore(context,aead,file).use { db ->
-                assertEquals(2,db.writableDatabase.version)
+                assertEquals(3,db.writableDatabase.version)
                 assertEquals(recipient.id,db.contact(recipient.id)?.id)
                 assertEquals("histórico preservado",db.lines(recipient.id).single().text)
                 val custody=CustodyStore(db) { CustodyClock(10000,1000,"boot") }

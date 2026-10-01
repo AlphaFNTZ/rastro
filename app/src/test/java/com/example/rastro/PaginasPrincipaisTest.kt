@@ -71,9 +71,9 @@ class PaginasPrincipaisTest {
         pages[0].measure(View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(1600,View.MeasureSpec.EXACTLY))
         pages[0].layout(0,0,1000,1600)
-        val position=IntArray(2); map.getLocationOnScreen(position)
-        val down=MotionEvent.obtain(0,0,MotionEvent.ACTION_DOWN,position[0]+700f,position[1]+800f,0)
-        val move=MotionEvent.obtain(0,100,MotionEvent.ACTION_MOVE,position[0]+200f,position[1]+800f,0)
+        val area=android.graphics.Rect(); assertTrue(map.getGlobalVisibleRect(area))
+        val down=MotionEvent.obtain(0,0,MotionEvent.ACTION_DOWN,area.exactCenterX(),area.exactCenterY(),0)
+        val move=MotionEvent.obtain(0,100,MotionEvent.ACTION_MOVE,area.exactCenterX()-200f,area.exactCenterY(),0)
         try {
             assertFalse(pager.onInterceptTouchEvent(down))
             assertFalse(pager.onInterceptTouchEvent(move))

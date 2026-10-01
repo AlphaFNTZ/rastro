@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.Rastro" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:fontFamily">@font/jakarta</item>
-        <item name="fontFamily">@font/jakarta</item>
+        <item name="fontFamily">@font/jakarta</item><item name="materialAlertDialogTheme">@style/ThemeOverlay.Rastro.Dialog</item>
 
         <!-- ===== Primária (roxo da marca) ===== -->
         <item name="colorPrimary">#5E4AE3</item>

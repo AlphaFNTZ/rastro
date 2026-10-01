@@ -19,17 +19,24 @@ class ChatRuntime private constructor(private val context: Context) {
     private val db by lazy { ChatStore(context,vault) }
     private val clockBoot by lazy { android.provider.Settings.Global.getInt(context.contentResolver, "boot_count", -1).let { if(it >= 0) it.toString() else java.util.UUID.randomUUID().toString() } }
     private val custody by lazy { CustodyStore(db) { CustodyClock(System.currentTimeMillis(),SystemClock.elapsedRealtime(),clockBoot) } }
+    private val forwarding by lazy { ForwardStore(db) { CustodyClock(System.currentTimeMillis(),SystemClock.elapsedRealtime(),clockBoot) } }
+    private val forwardEngine by lazy { ForwardEngine(crypto,forwarding,{ custody.enabled() },
+        { endpoint,bytes -> main.post { if(endpoint in endpoints) directTransport?.invoke(endpoint,bytes) } },::process,::changed) }
     private val custodyEngine by lazy { CustodyEngine(crypto,db,custody,::name,{ endpoint,bytes -> main.post { if(endpoint in endpoints) directTransport?.invoke(endpoint,bytes) } },::process,::changed) }
     private var directTransport: ((String,ByteArray) -> Unit)? = null
     private var endpoints = emptySet<String>()
     fun connections(ids: Set<String>) {
         endpoints=ids
-        task<Unit> { custodyEngine.connections(ids) }
+        task<Unit> { custodyEngine.connections(ids); forwardEngine.connections(ids) }
         connected(ids.isNotEmpty())
     }
-    fun custodySnapshot(callback: (Result<CustodySnapshot>) -> Unit) = task(callback) { custody.snapshot() }
-    fun carrierMode(enabled: Boolean, callback: (Result<Unit>) -> Unit) = task(callback) { custody.setEnabled(enabled); custodyEngine.tick(); changed() }
-    fun removeCustody(id: String, callback: (Result<Unit>) -> Unit) = task(callback) { custody.remove(id); changed() }
+    fun custodySnapshot(callback: (Result<CustodySnapshot>) -> Unit) = task(callback) {
+        forwarding.maintain()
+        val legacy=custody.snapshot(); val usage=forwarding.usage()
+        legacy.copy(active=legacy.active+usage.first,bytes=legacy.bytes+usage.second,packets=legacy.packets+forwarding.snapshot())
+    }
+    fun carrierMode(enabled: Boolean, callback: (Result<Unit>) -> Unit) = task(callback) { custody.setEnabled(enabled); custodyEngine.tick(); forwardEngine.tick(); changed() }
+    fun removeCustody(id: String, callback: (Result<Unit>) -> Unit) = task(callback) { if(forwarding.packet(id)!=null) forwarding.finish(id,"REMOVED") else custody.remove(id); changed() }
     private val relay by lazy { ChatRelay(crypto.contact("local").id, ::deliver) { frame, except -> main.post { transport?.invoke(frame.encode(), except) } } }
     private val listeners = LinkedHashSet<() -> Unit>()
     // Only touched on main thread. Transport exists only while the service is active.
@@ -47,7 +54,7 @@ class ChatRuntime private constructor(private val context: Context) {
     fun unlisten(listener: () -> Unit) { listeners.remove(listener) }
     private fun changed() { main.post { listeners.toList().forEach { it() } } }
     fun attach(sender: (ByteArray, String?) -> Unit, direct: (String,ByteArray) -> Unit) { transport = sender; directTransport=direct; lastTick = 0; tick() }
-    fun detach() { transport = null; directTransport=null; endpoints=emptySet(); connected = false; task<Unit> { custodyEngine.clear() } }
+    fun detach() { transport = null; directTransport=null; endpoints=emptySet(); connected = false; task<Unit> { custodyEngine.clear(); forwardEngine.clear() } }
     private fun <T> task(callback: (Result<T>) -> Unit = {}, action: () -> T) {
         try { worker.execute { val result = runCatching(action); main.post { callback(result) } } }
         catch (_: RejectedExecutionException) { callback(Result.failure(IllegalStateException("Chat ocupado; tente novamente"))) }
@@ -66,7 +73,13 @@ class ChatRuntime private constructor(private val context: Context) {
         require(text.isNotBlank() && text.toByteArray().size <= ChatEnvelope.MAX_TEXT_BYTES) { "Use de 1 a 2.048 bytes de texto" }
         val c = requireNotNull(db.contact(peer)) { "Cadastre o contato por QR Code" }
         custody.maintain()
-        val e = crypto.seal(c,"TEXT",text.toByteArray()); db.outgoing(e,text); custody.maintain()
+        forwarding.maintain()
+        val e = crypto.seal(c,"TEXT",text.toByteArray())
+        forwarding.atomic {
+            db.outgoing(e,text)
+            db.writableDatabase.execSQL("UPDATE messages SET transport_version=2 WHERE id=?",arrayOf(e.id))
+            forwarding.createOwn(crypto,e)
+        }
         main.post { lastTick = 0; tick() }; changed()
     }
     fun receive(bytes: ByteArray, endpoint: String) {
@@ -76,7 +89,7 @@ class ChatRuntime private constructor(private val context: Context) {
         if(++inboundCount > 24) return
         task<Unit>({ result -> if(result.isFailure && now - lastNotice > 10000) {
             lastNotice = now; notice = "Pacote de chat rejeitado. Confira o cadastro mútuo por QR Code."; listeners.toList().forEach { it() }
-        } }) { if(CustodyFrame.recognizes(bytes)) custodyEngine.receive(endpoint,bytes) else relay.receive(ChatFrame.decode(bytes),endpoint) }
+        } }) { if(ForwardFrame.recognizes(bytes)) forwardEngine.receive(endpoint,bytes) else if(CustodyFrame.recognizes(bytes)) custodyEngine.receive(endpoint,bytes) else relay.receive(ChatFrame.decode(bytes),endpoint) }
     }
     fun tick() {
         if(transport == null || !connected) return
@@ -84,8 +97,14 @@ class ChatRuntime private constructor(private val context: Context) {
         if(lastTick != 0L && now - lastTick < 30000) return
         lastTick = now
         task<Unit>({ result -> if(result.isFailure) { notice = "Chat indisponível: não foi possível abrir a identidade ou a fila local."; listeners.toList().forEach { it() } } }) {
-            custody.maintain()
+            custody.maintain(); forwarding.maintain()
             db.pending().forEach { relay.originate(it); db.attempted(it.id) }
+            forwardEngine.tick()
+            // Bounded connected-mesh attempts do not create any new custody authorizations.
+            forwarding.active().filter { !it.own }.take(2).forEach { packet ->
+                packet.envelope?.let { relay.originate(ChatEnvelope.decode(it)) }
+                forwarding.attempted(packet.id)
+            }
             custodyEngine.tick(); changed()
         }
     }
@@ -96,8 +115,10 @@ class ChatRuntime private constructor(private val context: Context) {
         if(e.kind == "TEXT") {
             require(plain.size <= ChatEnvelope.MAX_TEXT_BYTES)
             val text = utf8(plain); require(text.isNotBlank())
-            val receipt = db.incoming(e,text) {
-                crypto.seal(from,"ACK",pack { writeUTF(e.id); writeUTF(e.hash()) })
+            val receipt = forwarding.atomic {
+                val ack=db.incoming(e,text) { crypto.seal(from,"ACK",pack { writeUTF(e.id); writeUTF(e.hash()) }) }
+                forwarding.receipt(crypto,e,ack)
+                ack
             }
             changed(); return receipt
         } else {
@@ -105,6 +126,7 @@ class ChatRuntime private constructor(private val context: Context) {
             unpack(plain) { ref = readUTF(); hash = readUTF(); uuid(ref); require(hash.matches(Regex("[0-9a-f]{64}"))) }
             require(reference==null || reference==ref) { "Recibo referente a outra mensagem" }
             db.acknowledge(e.from,ref,hash)
+            forwarding.packet(ref)?.let { require(it.hash==hash && it.destination==e.from); forwarding.finish(ref) }
         }
         changed()
         return null

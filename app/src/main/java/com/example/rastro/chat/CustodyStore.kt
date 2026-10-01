@@ -3,7 +3,7 @@ package com.example.rastro.chat
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 
-data class HeldPacket(val id: String, val origin: String, val destination: String, val hash: String, val state: String, val remaining: Long, val packet: ByteArray?, val receipt: ByteArray?)
+data class HeldPacket(val id: String, val origin: String, val destination: String, val hash: String, val state: String, val remaining: Long, val packet: ByteArray?, val receipt: ByteArray?, val authorizations: Int = 0, val pending: Int = 0)
 data class CustodySnapshot(val enabled: Boolean, val active: Int, val bytes: Long, val packets: List<HeldPacket>)
 
 /** All operations serialized on ChatRuntime's worker. Only ciphertext of third parties is stored. */
@@ -16,7 +16,7 @@ class CustodyStore(private val store: ChatStore, private val clock: () -> Custod
         val now=clock()
         db.beginTransaction()
         try {
-            db.rawQuery("SELECT id FROM messages WHERE outgoing=1 AND status NOT IN ('DELIVERED','EXPIRED') AND id NOT IN (SELECT id FROM dispatch)",null).use { c ->
+            db.rawQuery("SELECT id FROM messages WHERE outgoing=1 AND transport_version=1 AND status NOT IN ('DELIVERED','EXPIRED') AND id NOT IN (SELECT id FROM dispatch)",null).use { c ->
                 while(c.moveToNext()) db.insertOrThrow("dispatch",null,stamp(ContentValues().apply { put("id",c.getString(0)); put("carrier",""); put("released",0) },LIFETIME))
             }
             for(table in listOf("dispatch","custody")) {
@@ -38,7 +38,9 @@ class CustodyStore(private val store: ChatStore, private val clock: () -> Custod
     fun capacity(origin: String, size: Int): Boolean {
         val totals=db.rawQuery("SELECT count(*),coalesce(sum(coalesce(length(packet),0)+CASE WHEN state='HELD' THEN 12288 ELSE coalesce(length(receipt),0) END),0),sum(CASE WHEN state IN ('HELD','RECEIPT') THEN 1 ELSE 0 END) FROM custody",null).use { it.moveToFirst(); Triple(it.getInt(0),it.getLong(1),it.getInt(2)) }
         val perOrigin=db.rawQuery("SELECT count(*) FROM custody WHERE origin=? AND state IN ('HELD','RECEIPT')",arrayOf(origin)).use { it.moveToFirst(); it.getInt(0) }
-        return totals.first<2048 && totals.third<128 && perOrigin<8 && size in 1..12288 && totals.second+size+12288<=2*1024*1024
+        val forward=db.rawQuery("SELECT count(*),coalesce(sum(CASE WHEN state='ACTIVE' THEN 32768 ELSE coalesce(length(proof),0) END),0),coalesce(sum(CASE WHEN state='ACTIVE' THEN 1 ELSE 0 END),0) FROM forward_packets",null).use { it.moveToFirst(); Triple(it.getInt(0),it.getLong(1),it.getInt(2)) }
+        val origins=db.rawQuery("SELECT count(*) FROM forward_packets WHERE origin=? AND state='ACTIVE' AND own=0",arrayOf(origin)).use { it.moveToFirst(); it.getInt(0) }
+        return totals.first+forward.first<2048 && totals.third+forward.third<128 && perOrigin+origins<8 && size in 1..12288 && totals.second+forward.second+size+12288<=1536*1024
     }
     fun accept(e: ChatEnvelope, actor: String, remaining: Long): String {
         require(e.from==actor && e.kind=="TEXT" && remaining in 1..LIFETIME)

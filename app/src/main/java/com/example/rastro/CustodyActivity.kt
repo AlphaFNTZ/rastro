@@ -10,7 +10,7 @@ import com.example.rastro.chat.ChatRuntime
 import com.example.rastro.chat.CustodySnapshot
 import com.example.rastro.service.EstadoRastro
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 
 class CustodyActivity : TelaRastroActivity() {
@@ -53,12 +53,18 @@ class CustodyActivity : TelaRastroActivity() {
             val row=layoutInflater.inflate(R.layout.item_custody_packet,items,false)
             row.findViewById<TextView>(R.id.packet_title).text=getString(R.string.custody_packet_title,packet.id.take(8))
             row.findViewById<TextView>(R.id.packet_route).text=getString(R.string.custody_packet_route,packet.origin.take(12),packet.destination.take(12))
-            row.findViewById<TextView>(R.id.packet_state).setText(
-                if(packet.state=="RECEIPT") R.string.custody_packet_receipt else R.string.custody_packet_waiting)
+            row.findViewById<TextView>(R.id.packet_state).text=when(packet.state) {
+                "FORWARD_PENDING" -> getString(R.string.custody_forward_pending,packet.pending,packet.authorizations)
+                "FORWARD_TRANSFERRED" -> getString(R.string.custody_forward_transferred)
+                "FORWARD_RECEIPT" -> getString(R.string.custody_forward_receipt,packet.authorizations)
+                "FORWARD_ACTIVE" -> getString(R.string.custody_forward_active,packet.authorizations)
+                "RECEIPT" -> getString(R.string.custody_packet_receipt)
+                else -> getString(R.string.custody_packet_waiting)
+            }
             row.findViewById<TextView>(R.id.packet_expiry).text=getString(R.string.custody_packet_expiry,(packet.remaining/3600000).coerceAtLeast(0))
             row.findViewById<MaterialButton>(R.id.packet_remove).setOnClickListener {
                 MaterialAlertDialogBuilder(this).setTitle("Remover esta cópia?")
-                    .setMessage("A mensagem ou confirmação deixará de ser transportada por este aparelho. Isso não apaga o histórico do remetente ou destinatário e pode impedir a entrega desta cópia.")
+                    .setMessage("A mensagem ou confirmação deixará de ser transportada por este aparelho. Isso não apaga o histórico nem as cópias remotas. Pode impedir a entrega e não devolve autorizações para novos repasses.")
                     .setNegativeButton("Manter",null).setPositiveButton("Remover") { _,_ ->
                         chat.removeCustody(packet.id) { result -> result.onFailure { error() }; refresh() }
                     }.show()

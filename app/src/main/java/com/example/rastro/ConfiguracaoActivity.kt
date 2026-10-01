@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import com.example.rastro.mapa.*
 import com.example.rastro.network.AnuncioNo
 import com.example.rastro.service.EstadoRastro
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import org.maplibre.android.MapLibre
 import java.io.ByteArrayOutputStream

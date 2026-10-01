@@ -11,15 +11,26 @@ data class ChatContactEntry(val contact: ChatContact, val alias: String, val add
 data class ChatLine(val id: String, val peer: String, val outgoing: Boolean, val created: Long, val received: Long, val text: String, val status: String)
 
 /** Accessed only on the chat worker. Protected columns use row-specific associated data. */
-class ChatStore(context: Context, private val vault: Aead, databaseName: String = "rastro-chat.db") : SQLiteOpenHelper(context, databaseName, null, 2) {
+class ChatStore(context: Context, private val vault: Aead, databaseName: String = "rastro-chat.db") : SQLiteOpenHelper(context, databaseName, null, 3), java.io.Closeable {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE contacts(id TEXT PRIMARY KEY, qr BLOB NOT NULL, added INTEGER NOT NULL, last_seen INTEGER NOT NULL DEFAULT 0, alias BLOB)")
         db.execSQL("CREATE TABLE messages(id TEXT PRIMARY KEY, peer TEXT NOT NULL, outgoing INTEGER NOT NULL, created INTEGER NOT NULL, received INTEGER NOT NULL, body BLOB NOT NULL, envelope BLOB NOT NULL, status TEXT NOT NULL, attempted INTEGER NOT NULL DEFAULT 0, receipt BLOB)")
         db.execSQL("CREATE INDEX messages_peer ON messages(peer, received, id)")
         db.execSQL("CREATE INDEX messages_pending ON messages(outgoing, status, attempted)")
         CustodyStore.create(db)
+        upgradeForward(db)
     }
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { require(oldVersion == 1 && newVersion == 2); CustodyStore.create(db) }
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        require(oldVersion in 1..2 && newVersion==3)
+        if(oldVersion<2) CustodyStore.create(db)
+        upgradeForward(db)
+    }
+    private fun upgradeForward(db: SQLiteDatabase) {
+        val columns=db.rawQuery("PRAGMA table_info(messages)",null).use { c -> buildSet { while(c.moveToNext()) add(c.getString(1)) } }
+        if("transport_version" !in columns) db.execSQL("ALTER TABLE messages ADD COLUMN transport_version INTEGER NOT NULL DEFAULT 1")
+        if("forward_receipt" !in columns) db.execSQL("ALTER TABLE messages ADD COLUMN forward_receipt BLOB")
+        ForwardStore.create(db)
+    }
     private fun protect(value: String, aad: String) = vault.encrypt(value.toByteArray(), aad.toByteArray())
     private fun reveal(value: ByteArray, aad: String) = utf8(vault.decrypt(value, aad.toByteArray()))
     fun contacts(): List<ChatContact> = readableDatabase.rawQuery("SELECT id,qr FROM contacts ORDER BY added,id", null).use { c -> buildList { while (c.moveToNext()) add(ChatContact.parse(reveal(c.getBlob(1), "contact:${c.getString(0)}"))) } }
@@ -87,6 +98,6 @@ class ChatStore(context: Context, private val vault: Aead, databaseName: String 
         } finally { db.endTransaction() }
     }
     fun pending(): List<ChatEnvelope> = readableDatabase.rawQuery("SELECT envelope FROM messages WHERE outgoing=1 AND status NOT IN ('DELIVERED','EXPIRED') ORDER BY attempted,received LIMIT 4", null).use { c -> buildList { while(c.moveToNext()) add(ChatEnvelope.decode(c.getBlob(0))) } }
-    fun attempted(id: String) { writableDatabase.execSQL("UPDATE messages SET attempted=?,status=CASE WHEN status IN ('CUSTODY_PENDING','CARRIED') THEN status ELSE 'AWAITING_ACK' END WHERE id=? AND status NOT IN ('DELIVERED','EXPIRED')", arrayOf<Any>(System.currentTimeMillis(), id)) }
+    fun attempted(id: String) { writableDatabase.execSQL("UPDATE messages SET attempted=?,status=CASE WHEN status IN ('CUSTODY_PENDING','CARRIED','FORWARD_PENDING','FORWARDED') THEN status ELSE 'AWAITING_ACK' END WHERE id=? AND status NOT IN ('DELIVERED','EXPIRED')", arrayOf<Any>(System.currentTimeMillis(), id)) }
     fun lines(peer: String): List<ChatLine> = readableDatabase.rawQuery("SELECT id,outgoing,created,received,body,status FROM messages WHERE peer=? ORDER BY received DESC,rowid DESC LIMIT 200", arrayOf(peer)).use { c -> buildList { while(c.moveToNext()) add(ChatLine(c.getString(0), peer,c.getInt(1)==1,c.getLong(2),c.getLong(3),reveal(c.getBlob(4),"message:${c.getString(0)}"),c.getString(5))) }.reversed() }
 }

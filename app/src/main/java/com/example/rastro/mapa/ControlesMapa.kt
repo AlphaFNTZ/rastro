@@ -5,7 +5,7 @@ import android.os.SystemClock
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.example.rastro.R
 import com.example.rastro.service.EstadoRastro
 import com.example.rastro.sos.ApresentacaoSos

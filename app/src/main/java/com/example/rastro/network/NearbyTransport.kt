@@ -44,7 +44,7 @@ class NearbyTransport(
     private val payloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
             val bytes = payload.asBytes() ?: return
-            if (com.example.rastro.chat.ChatFrame.recognizes(bytes) || com.example.rastro.chat.CustodyFrame.recognizes(bytes)) {
+            if (com.example.rastro.chat.ChatFrame.recognizes(bytes) || com.example.rastro.chat.CustodyFrame.recognizes(bytes) || com.example.rastro.chat.ForwardFrame.recognizes(bytes)) {
                 if (bytes.size <= com.example.rastro.chat.ChatFrame.MAX_BYTES) main.post { if (ativo) eventos.chatRecebido(endpointId, bytes) }
                 return
             }

@@ -61,6 +61,7 @@ class CustodyEngineTest {
             val a=n.node("A"); val b=n.node("B"); val c=n.node("C"); val d=n.node("D")
             b.custody.setEnabled(true); d.custody.setEnabled(true)
             val e=a.send(c)
+            assertTrue(b.db.contacts().isEmpty())
             n.connect(a,b)
             assertEquals("CARRIED",a.custody.status(e.id)); assertEquals("HELD",b.custody.held(e.id)?.state)
             assertEquals(b.contact.id,a.custody.carrier(e.id))
@@ -72,6 +73,7 @@ class CustodyEngineTest {
             n.disconnect(); b.restart(); n.connect(b,a)
             assertEquals("DELIVERED",a.custody.status(e.id)); assertEquals("DONE",b.custody.held(e.id)?.state)
             assertTrue(a.db.pending().isEmpty()); assertEquals(0,b.custody.snapshot().active)
+            assertTrue(b.db.contacts().isEmpty()) // Carrying and verifying peers never registers personal contacts.
         }
     }
     @Test fun lostCustodyReplyNeverSelectsAnotherCarrier() {

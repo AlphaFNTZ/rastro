@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.example.rastro.network.EstadoVizinho
 import com.example.rastro.network.QualidadeEnlace
 import com.example.rastro.service.EstadoRastro

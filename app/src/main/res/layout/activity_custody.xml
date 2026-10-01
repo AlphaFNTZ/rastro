@@ -21,6 +21,7 @@
 <TextView android:id="@+id/custody_status" style="@style/Rastro.SupportingText" android:accessibilityLiveRegion="polite"/>
 </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
+<TextView style="@style/Rastro.SupportingText" android:layout_marginTop="8dp" android:text="@string/custody_budget_note"/>
 <TextView style="@style/Rastro.Section" android:text="@string/custody_pending"/>
 <TextView android:id="@+id/custody_empty" style="@style/Rastro.EmptyState" android:paddingVertical="24dp" android:text="@string/custody_empty"/>
 <LinearLayout android:id="@+id/custody_items" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>

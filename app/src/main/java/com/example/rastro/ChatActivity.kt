@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rastro.chat.*
 import com.example.rastro.service.EstadoRastro
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.rastro.RastroDialogBuilder as MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import com.journeyapps.barcodescanner.ScanContract
@@ -71,7 +71,7 @@ class ChatActivity : TelaRastroActivity() {
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("peer",peer); outState.putString("peerName",peerName); super.onSaveInstanceState(outState) }
     override fun renderizar(estado: EstadoRastro) { if(visible) refresh() }
     private fun back() { if(peer != null) { peer = null; findViewById<EditText>(R.id.chat_text).text.clear(); refresh() } else finish() }
-    private fun scan() { scanner.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setPrompt("Leia o QR Code no aparelho do contato").setBeepEnabled(false).setOrientationLocked(false)) }
+    private fun scan() { scanner.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setPrompt("").setBeepEnabled(false).setCaptureActivity(QrScanActivity::class.java).setOrientationLocked(true)) }
     private fun message(text: String) { if(!isFinishing && !isDestroyed) MaterialAlertDialogBuilder(this).setMessage(text).setPositiveButton("OK",null).show() }
     private fun confirmContact(c: ChatContact) {
         MaterialAlertDialogBuilder(this).setTitle("Cadastrar contato verificado?")
@@ -95,7 +95,12 @@ class ChatActivity : TelaRastroActivity() {
                 runOnUiThread {
                     if(!visible) return@runOnUiThread
                     bitmap.fold({ image ->
-                        val view = ImageView(this).apply { setImageBitmap(image); adjustViewBounds = true; contentDescription = "QR Code público deste aparelho"; setPadding(16,16,16,16) }
+                        val view = ImageView(this).apply { setImageBitmap(image); adjustViewBounds = true
+                            maxHeight = (resources.displayMetrics.heightPixels * 0.35f).toInt()
+                            scaleType = ImageView.ScaleType.FIT_CENTER
+                            contentDescription = "QR Code público deste aparelho"
+                            val padding = (16 * resources.displayMetrics.density).toInt()
+                            setPadding(padding,padding,padding,padding) }
                         MaterialAlertDialogBuilder(this).setTitle("Meu QR Code")
                             .setMessage("Peça ao contato para ler este código. Depois leia o código dele para concluir o cadastro mútuo.")
                             .setView(view).setPositiveButton("Fechar",null).show()
@@ -127,7 +132,7 @@ class ChatActivity : TelaRastroActivity() {
             result.fold({ lines ->
                 empty(lines.isEmpty(),"Nenhuma mensagem. Confirme que o contato também cadastrou seu QR Code.")
                 rows.show(lines.map { line ->
-                    val state = when(line.status) { "DELIVERED" -> "Entrega confirmada"; "WAITING" -> "Aguardando conexão"; "AWAITING_ACK" -> "Aguardando confirmação do destinatário"; "CUSTODY_PENDING" -> "Custódia em confirmação"; "CARRIED" -> "Copiada para portador; aguardando destinatário"; "EXPIRED" -> "Expirada sem confirmação"; else -> "Recebida" }
+                    val state = when(line.status) { "DELIVERED" -> "Entrega confirmada"; "WAITING" -> "Aguardando conexão"; "AWAITING_ACK" -> "Aguardando confirmação do destinatário"; "FORWARD_PENDING" -> "Repasse em confirmação"; "FORWARDED" -> "Em transporte por portadores"; "CUSTODY_PENDING" -> "Custódia em confirmação"; "CARRIED" -> "Copiada para portador; aguardando destinatário"; "EXPIRED" -> "Expirada sem confirmação"; else -> "Recebida" }
                     Row(if(line.outgoing) "Você" else peerName,
                         "${time(line.created)} · $state${if(!line.outgoing) "\nRecebida ${time(line.received)}" else ""}",
                         body = line.text, outgoing = line.outgoing)
