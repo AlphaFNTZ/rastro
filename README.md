@@ -115,3 +115,13 @@ portador** para guardar mensagens cifradas e entregá-las ao encontrar o destina
 diretamente. A Parte 2 mantém um portador por mensagem, além da cópia na origem,
 com cotas, validade e retorno persistente da confirmação. Consulte
 [uso, limites e testes da Parte 2](docs/MELHORIAS_02_PARTE2.md).
+## Repasse entre portadores — Melhorias 03
+
+Mensagens novas e recibos agora podem atravessar uma sequência de portadores sem
+contatos pessoais nos intermediários, com duas autorizações, delegações assinadas
+e retomada persistente após interrupções. Mensagens antigas mantêm o fluxo da
+Parte 2. A implementação preserva o envelope privado e o transporte Nearby.
+
+Consulte [uso, limites, testes e validações pendentes](docs/MELHORIAS_03_IMPLEMENTACAO.md).
+A troca controlada nos emuladores valida o protocolo e a persistência; o ensaio de
+rádio em aparelhos físicos continua necessário.
