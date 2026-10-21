@@ -32,3 +32,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Modelos de linguagem nunca são versionados (guia GAT108, seção 5.2)
+*.litertlm
+*.tflite
+*.task
