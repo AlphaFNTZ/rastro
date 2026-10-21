@@ -23,6 +23,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.rastro.MainActivity
 import com.example.rastro.R
+import com.example.rastro.av1.GravadorAquisicao
+import com.example.rastro.av1.ResumoAquisicao
 import com.example.rastro.network.MeshRouter
 import com.example.rastro.network.Mensagem
 import com.example.rastro.network.NearbyTransport
@@ -58,7 +60,8 @@ data class EstadoRastro(
     val estadoLocalizacao: EstadoLocalizacao = EstadoLocalizacao.INDISPONIVEL,
     val localizacaoStatus: String = "Localização ainda não iniciada",
     val limitePosicaoRecenteMs: Long = ConfiguracaoLocalizacao.LIMITE_RECENTE_PADRAO_MS,
-    val ultimoSos: SosRecebido? = null
+    val ultimoSos: SosRecebido? = null,
+    val aquisicao: ResumoAquisicao = ResumoAquisicao()
 ) {
     val quantidadeConectados: Int get() = vizinhos.count { it.estado == EstadoVizinho.CONECTADO }
 }
@@ -75,6 +78,8 @@ class RastroService : Service(), NearbyTransport.Eventos {
     private val binder = LocalBinder()
     private val main = Handler(Looper.getMainLooper())
     private val buffer = CircularImuBuffer(500)
+    /** Registro em CSV dos fixos e da aquisição 1 Hz (AV1, capacidades 4 e 5). Nada sai do aparelho. */
+    private val gravador by lazy { GravadorAquisicao(this) }
     private val historico = HistoricoSessao()
     private val pendentes = ConfirmacoesPendentes(SystemClock::elapsedRealtime)
     private val rotasIndiretas = LinkedHashMap<String, RotaIndireta>()
@@ -105,6 +110,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
 
     private val gpsListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
+            gravador.registrarFix(location)
             val leitura = PosicaoMapper.converter(location)
             val agora = SystemClock.elapsedRealtime()
             if (leitura != null && leitura.tempoMonotonicoMs <= agora &&
@@ -168,9 +174,12 @@ class RastroService : Service(), NearbyTransport.Eventos {
         iniciarForeground()
         transporte.iniciar()
         chat.attach({ bytes, except -> if (estado.ativo) transporte.enviarChat(bytes, except) }, { endpoint,bytes -> if(estado.ativo) transporte.enviarCustodia(endpoint,bytes) })
+        gravador.iniciar()
         publicar(estado.copy(ativo = true, status = "Descoberta automática iniciada"))
         iniciarAnunciosPresenca()
         iniciarGnss()
+        // AV1: a aquisição inercial faz parte da camada 1 e começa junto com o serviço (D-18).
+        if (!estado.sensoresAtivos) iniciarSensores()
         return START_STICKY
     }
 
@@ -241,6 +250,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         consumidor = Executors.newSingleThreadScheduledExecutor { Thread(it, "rastro-consumidor-imu") }.also {
             it.scheduleWithFixedDelay({
                 val lote = buffer.drenar()
+                gravador.registrarImu(lote, buffer.descartadas)
                 if (lote.isNotEmpty()) {
                     if (primeiro == 0L) primeiro = lote.first().timestampMonotonicoNs
                     ultimo = lote.last().timestampMonotonicoNs
@@ -395,6 +405,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
     fun pararRastro() {
         if (destruindo) return
         pararSensores()
+        gravador.parar()
         if (gnssAtivo) localizacao.removeUpdates(gpsListener)
         gnssAtivo = false
         chat.detach()
@@ -416,6 +427,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
         anunciosPresencaAtivos = false
         imu.parar()
         consumidor?.shutdownNow()
+        gravador.parar()
         if (gnssAtivo) localizacao.removeUpdates(gpsListener)
         chat.detach()
         transporte.close()
@@ -424,7 +436,7 @@ class RastroService : Service(), NearbyTransport.Eventos {
     }
 
     private fun publicar(novo: EstadoRastro) {
-        estado = novo.copy(eventos = historico.eventos)
+        estado = novo.copy(eventos = historico.eventos, aquisicao = gravador.resumo)
         observadores.toList().forEach { it.atualizado(estado) }
         atualizarNotificacao()
     }
@@ -454,14 +466,22 @@ class RastroService : Service(), NearbyTransport.Eventos {
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notificacao())
     }
 
-    private fun notificacao() = NotificationCompat.Builder(this, CHANNEL_ID)
+    private fun notificacao(): android.app.Notification {
+        val conexoes = if (estado.quantidadeConectados == 0) getString(R.string.notification_text) else "${estado.quantidadeConectados} vizinho(s) conectado(s)"
+        // A contagem de fixos aparece na tela de bloqueio: é a prova ao vivo da capacidade 4.
+        val aquisicao = estado.aquisicao.linhaCurta(SystemClock.elapsedRealtime())
+        return NotificationCompat.Builder(this, CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_rastro_notification)
         .setContentTitle(getString(R.string.notification_title))
-        .setContentText(if (estado.quantidadeConectados == 0) getString(R.string.notification_text) else "${estado.quantidadeConectados} vizinho(s) conectado(s)")
+        .setContentText(aquisicao)
+        .setStyle(NotificationCompat.BigTextStyle().bigText("$aquisicao\n$conexoes"))
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setOnlyAlertOnce(true)
         .setOngoing(true)
         .setContentIntent(PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         .build()
+    }
 
     private fun criarCanalNotificacao() {
         getSystemService(NotificationManager::class.java).createNotificationChannel(

@@ -22,6 +22,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- AV1: mantém a CPU acordada durante a gravação para o acelerômetro seguir com a tela apagada. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
@@ -68,6 +70,7 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".CustodyActivity" android:exported="false" />
+        <activity android:name=".av1.EnsaioActivity" android:exported="false" />
         <activity android:name=".QrScanActivity" android:exported="false" android:screenOrientation="behind" android:configChanges="orientation|screenSize" />
     </application>
 

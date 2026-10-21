@@ -26,6 +26,7 @@ data class LeituraLocal(val posicao: LocalizacaoSos, val tempoMonotonicoMs: Long
 
 object ConfiguracaoLocalizacao {
     const val LIMITE_RECENTE_PADRAO_MS = 60_000L
-    const val INTERVALO_MS = 5_000L
+    /** 1 s: a restrição cinemática da reconciliação (AV1) exige Δt curto entre fixos (D-17). */
+    const val INTERVALO_MS = 1_000L
     fun limiteValido(ms: Long) = ms in 10_000L..600_000L
 }
