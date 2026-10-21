@@ -153,8 +153,19 @@ class ConfiguracaoActivity : TelaRastroActivity() {
     private fun abrirDiagnostico() {
         diagnostico = TextView(this).apply { setPadding(32, 16, 32, 16); setTextIsSelectable(true); textSize = 14f }
         atualizarDiagnostico()
+        val conteudo = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(Button(this@ConfiguracaoActivity).apply {
+                text = "Abrir ensaio AV1 (reconciliação e erro grosseiro)"
+                setAllCaps(false)
+                setOnClickListener { startActivity(Intent(this@ConfiguracaoActivity, com.example.rastro.av1.EnsaioActivity::class.java)) }
+            })
+            // O builder só estiliza um TextView filho direto do ScrollView; aqui o filho é a coluna.
+            diagnostico?.setTextAppearance(R.style.Rastro_DialogBody)
+            addView(diagnostico)
+        }
         dialogoDiagnostico = MaterialAlertDialogBuilder(this).setTitle(R.string.diagnostics)
-            .setView(ScrollView(this).apply { addView(diagnostico) })
+            .setView(ScrollView(this).apply { addView(conteudo) })
             .setPositiveButton("Fechar", null).setNeutralButton("IMU", null).setNegativeButton("Localização", null).create()
         dialogoDiagnostico?.setOnShowListener {
             atualizarDiagnostico()
@@ -168,7 +179,8 @@ class ConfiguracaoActivity : TelaRastroActivity() {
         dialogoDiagnostico?.show()
     }
     private fun atualizarDiagnostico() {
-        diagnostico?.text = "${estadoAtual.status}\n\n${estadoAtual.sensor}\n\n${estadoAtual.localizacaoStatus}\n${estadoAtual.gnss}\n\n${getString(R.string.nearby_transport_explanation)}"
+        diagnostico?.text = "${estadoAtual.status}\n\n${estadoAtual.aquisicao.linhaCurta(android.os.SystemClock.elapsedRealtime())}\n" +
+            "${estadoAtual.aquisicao.diretorio ?: ""}\n\n${estadoAtual.sensor}\n\n${estadoAtual.localizacaoStatus}\n${estadoAtual.gnss}\n\n${getString(R.string.nearby_transport_explanation)}"
         dialogoDiagnostico?.getButton(-3)?.isEnabled = estadoAtual.ativo
         dialogoDiagnostico?.getButton(-2)?.isEnabled = estadoAtual.ativo
     }

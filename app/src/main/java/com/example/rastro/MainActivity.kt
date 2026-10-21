@@ -84,6 +84,10 @@ class MainActivity : TelaRastroActivity() {
         findViewById<View>(R.id.card_alerta_sos).setOnClickListener { controlesMapa.detalhes() }
         findViewById<View>(R.id.map_details).setOnClickListener { controlesMapa.detalhes() }
         findViewById<View>(R.id.status).setOnClickListener { controlesMapa.detalhes() }
+        // Atalho do MVP da AV1: toque longo no status abre a tela de ensaio (reconciliação ao vivo).
+        findViewById<View>(R.id.status).setOnLongClickListener {
+            startActivity(Intent(this, com.example.rastro.av1.EnsaioActivity::class.java)); true
+        }
         acaoPendente = savedInstanceState?.getString(EXTRA_MAPA) ?: intent.getStringExtra(EXTRA_MAPA)
         executarAcaoMapa()
         renderizar(estadoAtual)
@@ -118,7 +122,8 @@ class MainActivity : TelaRastroActivity() {
         findViewById<View>(R.id.layout_acoes_ativado).visibility = if (estado.ativo) View.VISIBLE else View.GONE
         findViewById<View>(R.id.btn_enviar_sos).isEnabled = estado.ativo && estado.quantidadeConectados > 0
         findViewById<TextView>(R.id.status).text = if (estado.ativo) {
-            estado.status + if (estado.sos != "Nenhum SOS enviado") "\n${estado.sos}" else ""
+            estado.status + "\n" + estado.aquisicao.linhaCurta(android.os.SystemClock.elapsedRealtime()) +
+                if (estado.sos != "Nenhum SOS enviado") "\n${estado.sos}" else ""
         } else getString(R.string.status_idle)
         findViewById<View>(R.id.fab_minha_localizacao).isEnabled = estado.posicaoLocal != null
         findViewById<View>(R.id.fab_ver_sos).isEnabled = estado.ultimoSos?.mensagem?.localizacao != null

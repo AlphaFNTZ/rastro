@@ -92,7 +92,7 @@
         android:textSize="13sp"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:accessibilityLiveRegion="polite"
-        android:maxLines="2"/>
+        android:maxLines="3"/>
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_alerta_sos"
         style="@style/Rastro.SettingsCard"
