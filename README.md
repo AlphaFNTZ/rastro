@@ -42,6 +42,15 @@ A solução proposta transformará smartphones Android comuns em nós de uma red
 
 ---
 
+## AV1 — sente, corrige e detecta
+
+Reconciliação dos fixos GNSS sob restrição cinemática, detecção de erro grosseiro,
+gravação de 30 min com o aparelho bloqueado e ensaio reprodutível com semente
+(`com.example.rastro.av1`). Mapa capacidade → código → teste → evidência em
+[docs/README_AV1.md](docs/README_AV1.md); coleta e demonstração em
+[docs/ENSAIO_AV1.md](docs/ENSAIO_AV1.md); evidências geradas por
+`scripts\av1_evidencias.ps1` em `docs/evidencias/resultados`.
+
 ## 📁 Estrutura da Documentação
 
 - [`docs/PROPOSAL.md`](docs/PROPOSAL.md) — Ficha formal da proposta do projeto com a Tabela de Mapeamento das Dez Capacidades.

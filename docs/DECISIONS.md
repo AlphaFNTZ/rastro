@@ -177,3 +177,70 @@ do docente ou revisão já realizada pelo trio. As decisões D-01 a D-05 continu
   para cada novo SOS. Não há medições físicas embutidas ou cobertura garantida.
 - **Operação:** veja [guia](MELHORIAS_01_IMPLEMENTACAO.md) e
   [procedimento de ensaios](ENSAIOS_ALCANCE.md).
+
+## Registro de implementação AV1 (S4–S5) — 21/10/2026
+
+As entradas D-17 a D-21 foram propostas e implementadas com assistente de IA
+(declaração no relatório, seção 8). Valem como proposta até a revisão do grupo no PR,
+conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
+
+### D-17 — Reconciliação cinemática por mínimos quadrados ponderados
+- **Data:** 21/10/2026
+- **Decisão:** reconciliar janelas de 10 fixos GPS consecutivos sob a restrição
+  pₐ(k+1) − pₐ(k) − ½(vₐ(k) + vₐ(k+1))·Δtₖ = 0 por eixo (leste e norte), com p em
+  metros na projeção local, vₐ = componente da velocidade (módulo × seno/cosseno do
+  rumo) e Δt em segundos do relógio monotônico. Solução ŷ = y − Σ·Aᵀ·(A·Σ·Aᵀ)⁻¹·A·y.
+  Σ vem só do sensor: σ² = r68²/(−2 ln 0,32) na posição; propagação de (σs, σθ) na
+  velocidade; sem rumo, componente com média 0 e variância σs² + s²/2.
+- **Alternativas consideradas:** filtro de Kalman (estima estado, exige modelo de
+  processo e ruído Q arbitrados — não é reconciliação de medidas); restrição de distância
+  |Δp| = s·Δt (não linear e descarta a direção); mínimos quadrados sem peso (corrige igual
+  a medida boa e a ruim).
+- **Motivo:** com Δt conhecido a restrição é linear nas medidas, usa a velocidade Doppler
+  (medida independente da posição) e dá solução fechada sem inverter Σ.
+- **Consequências:** precisa de GNSS a 1 s (D-20). Não há reconciliação da IMU: a API
+  não informa sigma por eixo (D-07 continua). Janela pequena → V = A·Σ·Aᵀ de 18 × 18.
+- **Decidido por:** ⟪revisão do grupo⟫
+
+### D-18 — Erro grosseiro por teste de medida com eliminação serial
+- **Data:** 21/10/2026
+- **Decisão:** zⱼ = |aⱼ|/√Wⱼⱼ (ajuste normalizado, W = Σ·Aᵀ·V⁻¹·A·Σ); se max zⱼ passa do
+  limiar de Šidák para 4N medidas a α = 5% (≈ 3,2 com N = 10), retira-se o fixo e
+  reconcilia-se de novo, até 3 eliminações. O teste global γ = rᵀ·V⁻¹·r é registrado.
+- **Alternativas consideradas:** só o teste global (diz que há erro, não onde); teste
+  nodal nas restrições (aponta a restrição, não a medida); limiar fixo 1,96 por medida
+  (≈ 87% de falso alarme numa janela de 40 medidas).
+- **Consequências:** nos fixos das pontas há uma restrição por eixo e o erro não é
+  localizável; o ensaio injeta saltos no interior e a reprodução usa janela deslizante.
+- **Decidido por:** ⟪revisão do grupo⟫
+
+### D-19 — Ensaio reprodutível com semente declarada
+- **Data:** 21/10/2026
+- **Decisão:** `InjetorFalhas` com `java.util.Random(semente·31 + hash(rótulo))` — algoritmo
+  especificado na documentação Java, igual em qualquer JVM/Android. Semente 20261020.
+  Degradações: ruído gaussiano extra (acurácia declarada inalterada), perda de fixos e
+  salto de posição. Registro em CSV com campo vazio para ausência (`RegistroFixCsv`).
+- **Alternativas consideradas:** `kotlin.random.Random` (algoritmo não especificado entre
+  versões); um único gerador para o ensaio todo (a ordem dos ensaios mudaria os números).
+- **Decidido por:** ⟪revisão do grupo⟫
+
+### D-20 — Aquisição da AV1: gravador, GNSS a 1 s, IMU automática e wake lock
+- **Data:** 21/10/2026
+- **Decisão:** `GravadorAquisicao` grava `gnss_*.csv` (um fixo por linha) e
+  `aquisicao_*.csv` (1 Hz: leituras IMU, taxa, maior intervalo, fixos, tela, bloqueio,
+  bateria, temperatura) em `Android/data/com.example.rastro/files/registros`. O serviço
+  inicia a IMU junto com o GNSS, pede fixos a cada 1 s (antes 5 s) e mantém
+  `PARTIAL_WAKE_LOCK` (limite 4 h) enquanto grava. A notificação pública mostra a
+  contagem de fixos na tela de bloqueio.
+- **Motivo:** a capacidade 4 exige log de 30 min com o aparelho bloqueado; sem wake lock o
+  acelerômetro (sensor não-wakeup) pode parar com a CPU suspensa.
+- **Consequências:** maior consumo de bateria, medido no próprio log. Posição pessoal fica
+  em claro no armazenamento do app até a cifragem da AV2 (D-03) — limitação declarada.
+  Os registros copiados para o repositório (público) devem ser gravados no campus.
+- **Decidido por:** ⟪revisão do grupo⟫
+
+### D-21 — Detecção de queda fora do escopo
+- **Decisão:** o grupo retirou a detecção de quedas; o docente informou que ela não é
+  obrigatória. As capacidades 1–5 da ficha não dependem dela. O RuleEngine da capacidade 8
+  (AV2) precisa de nova definição, ligada à rede.
+- **Data e decidido por:** ⟪preencher: data da reunião e integrantes⟫
