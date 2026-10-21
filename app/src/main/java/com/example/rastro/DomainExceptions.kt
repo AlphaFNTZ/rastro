@@ -28,3 +28,16 @@ class InvalidTrajetoException(mensagem: String) : RastroDomainException(mensagem
 
 /** Configuração inválida da região crítica de leituras. */
 class InvalidBufferException(mensagem: String) : RastroDomainException(mensagem)
+
+/**
+ * Uma linha do registro gravado (CSV de fixos GNSS ou de aquisição) não pôde ser
+ * interpretada. A mensagem sempre inclui o número da linha, para o ensaio
+ * reprodutível apontar exatamente o dado ruim em vez de descartá-lo em silêncio.
+ */
+class InvalidRegistroException(mensagem: String) : RastroDomainException(mensagem)
+
+/**
+ * A reconciliação não pode ser feita: janela curta demais, intervalo de tempo não
+ * positivo, variância nula/não finita ou matriz singular na inversão de A·Σ·Aᵀ.
+ */
+class InvalidReconciliacaoException(mensagem: String) : RastroDomainException(mensagem)
