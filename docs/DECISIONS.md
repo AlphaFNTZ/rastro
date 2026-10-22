@@ -244,3 +244,60 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   obrigatória. As capacidades 1–5 da ficha não dependem dela. O RuleEngine da capacidade 8
   (AV2) precisa de nova definição, ligada à rede.
 - **Data e decidido por:** ⟪preencher: data da reunião e integrantes⟫
+
+## Registro dos ensaios reais da AV1 — 22/10/2026
+
+### D-22 — Fase entre o consumidor IMU e o registro de 1 Hz
+- **Data:** 21/10/2026 (correção) · 22/10/2026 (registro)
+- **Decisão:** o registro de 1 Hz começa 1,5 s depois de iniciar (`PRIMEIRO_REGISTRO_MS`),
+  meio período depois do consumidor IMU, e, se a janela estiver vazia, espera até 100 ms
+  (`ESPERA_IMU_VAZIA_MS`) **fora** do monitor antes de gravar a linha.
+- **Motivo:** o consumidor roda com atraso fixo (período = 1 s + tempo de execução) e o
+  registro com taxa fixa; a fase entre os dois escorrega e, quando cruza, uma linha sai com
+  imu_janela = 0 e a seguinte com o lote atrasado. Não é corrida: nenhuma leitura se perde e
+  todo acesso continua dentro do monitor. A espera fica fora do monitor para não segurar o
+  produtor nem o GNSS.
+- **Alternativas consideradas:** as duas tarefas no mesmo executor (acopla o log ao
+  consumidor, que é o que o log precisa observar); o registro com atraso fixo também (a fase
+  escorregaria do mesmo jeito).
+- **Consequências:** o jitter entre as duas tarefas continua existindo e é medido na AV2
+  (capacidade 6). O commit `9ffba37` desfez a correção por engano ao restaurar a acentuação; os
+  registros de 22/10 mostram o padrão sem a correção (4 linhas sem lote em 2170). A correção
+  foi restaurada em seguida.
+- **Decidido por:** Juliano Cesar Ferreira Ramos (com o Codex, 21/10/2026) ⟪aceite do grupo⟫
+
+### D-23 — GPS com a tela apagada: declarar a localização em segundo plano
+- **Data:** 22/10/2026
+- **Observação:** no Samsung SM-S926B, o GPS para ~180 s depois que a tela apaga e volta
+  quando ela acende (três ocorrências na sessão bloqueada; a mais longa, 734,5 s). A IMU e o
+  registro seguem; o provedor de rede entrega posição a cada 20 s, com r68 mediano de 100 m.
+  A otimização de bateria do Rastro já estava em "Irrestrito" e o serviço é do tipo `location`;
+  das três verificações da seção 12 do roteiro da disciplina, faltava a permissão de localização
+  em segundo plano: o app não a declarava, e o Android nem oferecia "Permitir o tempo todo".
+- **Decisão:** declarar `ACCESS_BACKGROUND_LOCATION` no manifesto. Teste em 22/10/2026 num
+  Samsung SM-S938B (Android 16) com "Permitir o tempo todo" concedido à mão: com a economia de
+  energia ligada o GPS ainda parou; desligada, o contador de fixos GNSS seguiu subindo com a tela
+  apagada (conferido pelo contador, sem registro copiado). A sessão de 22/10 continua como foi
+  gravada, com o corte, e é a evidência do problema.
+- **Alternativas consideradas:** pedir a permissão dentro do app agora (fluxo novo em duas
+  etapas e outra sessão de 35 min, sem tempo antes da entrega; fica para a AV2); trocar a fonte
+  por `FusedLocationProvider` (depende do Google Play Services, e o projeto não usa serviços de
+  nuvem).
+- **Consequências:** sem a permissão, um SOS disparado com a tela apagada há mais de 3 min sai
+  com a posição de rede (~100 m); a covariância vinda da acurácia declarada já reduz o peso desses
+  fixos, e a reconciliação só usa fixos `gps`. Com a correção, a permissão ainda precisa ser
+  concedida à mão (Configurações › Aplicativos › Rastro › Permissões › Localização) e a economia
+  de energia precisa estar desligada. Na AV2: pedir a permissão no app, num passo separado da
+  localização de primeiro plano, e regravar a sessão de 30 min.
+- **Decidido por:** ⟪grupo⟫
+
+### D-24 — Janelas com posição retida ficam fora das evidências
+- **Data:** 22/10/2026
+- **Decisão:** `Janelas.retida` marca a janela em que todos os fixos têm a mesma posição e
+  velocidade zero; o `EvidenciasAv1Test` descarta essas janelas e declara quantas foram (5 de
+  90 na caminhada, todas do início, com o aparelho ainda parado).
+- **Motivo:** nelas A·y = 0 antes de reconciliar: a tabela de resíduo mostraria 0 → 0, e uma
+  falha injetada seria detectada com facilidade artificial, inflando a sensibilidade.
+- **Alternativas consideradas:** manter todas as janelas (números melhores e menos honestos);
+  cortar o início do registro à mão (critério não reproduzível).
+- **Decidido por:** ⟪revisão do grupo⟫

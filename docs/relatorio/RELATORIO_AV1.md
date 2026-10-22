@@ -37,8 +37,8 @@ e `DomainExceptions` (exceções seladas `InvalidSensorReadException` e
 de dez rodadas; semana 3, `09cb7ad`/`6713ba7` (24/09): `NearbyTransport`, `MeshRouter`,
 `RastroService` em primeiro plano; melhorias 01 a 03 e telas (`51ef36d` a `3ee9e20`, 24 a 30/09).
 
-**Andre Bueno Ocanha** — ⟪preencher. Até 21/10/2026 não há commit com o endereço dele em
-nenhum ramo; se ele contribuiu por outro meio, descrever aqui e no e-mail⟫.
+**Andre Bueno Ocanha** — coautor (`Co-authored-by`) dos commits da AV1 de 21/10/2026 listados
+abaixo; ⟪descrever o que ele fez nas semanas 1 a 5⟫.
 
 **Implementação das semanas 4 e 5 (esta entrega)** — pacote `com.example.rastro.av1`:
 `Matriz`, `Estatistica`, `RegistroFix`/`RegistroFixCsv`, `RegistroAquisicao`/`RegistroAquisicaoCsv`,
@@ -48,7 +48,12 @@ nenhum ramo; se ele contribuiu por outro meio, descrever aqui e no e-mail⟫.
 `GravadorAquisicao` e `EnsaioActivity`; ligações em `RastroService`, `MainActivity`,
 `ConfiguracaoActivity`, `LocalizacaoSos` e no manifesto; 9 classes de teste em
 `app/src/test/.../av1`; scripts `av1_evidencias.ps1` e `av1_copiar_registros.ps1`.
-Código gerado com assistente de IA (seção 8). Revisado e comitado por: ⟪nome(s) e hash(es)⟫.
+Código gerado com assistente de IA (seção 8). Comitado por João Paulo Silva em 21/10/2026, com
+Andre Bueno Ocanha como coautor: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `7815b3f`, `216a99b`,
+`b09c873`, `b9c70d3` e `9ffba37`. Juliano Cesar Ferreira Ramos compilou o aplicativo, rodou a
+suíte completa e instalou no aparelho em 21/10/2026 (`cb0468d`, que traz também a correção de
+fase do gravador, D-22, e as evidências 4.2 e 4.3). As coletas físicas foram feitas pelo grupo em
+22/10/2026 no campus da UFLA.
 
 # 3. Fundamentação
 
@@ -157,6 +162,13 @@ de forma atômica com a inserção) e `ReentrantLock` (não precisamos de tentat
 de várias condições). O `GravadorAquisicao` tem uma segunda região crítica, também com monitor
 único, entre a thread principal (GNSS), o consumidor (lote IMU) e a tarefa de 1 Hz.
 
+Os testes no aparelho mostraram um efeito que não é corrida, mas aparece como uma: o consumidor
+IMU roda com **atraso fixo** de 1 s (o período real é 1 s mais o tempo de execução) e o registro
+de 1 Hz roda com **taxa fixa**. A fase entre as duas tarefas escorrega devagar e, quando cruza, uma
+linha do registro fica sem lote (imu_janela = 0) e a seguinte recebe o lote atrasado. Nenhuma
+leitura se perde. A correção (D-22) começa o registro meio período depois do consumidor e, se a
+janela estiver vazia, espera até 100 ms **fora** do monitor pela entrega real.
+
 O teste de corrida (10 rodadas, produtor, consumidor e observador simultâneos, 10 000
 leituras num buffer de 64) verifica ordem, ausência de duplicata e
 consumidas + descartadas = produzidas. Ele **prova** que, nessas execuções, nenhuma
@@ -175,7 +187,8 @@ segundo, leituras e taxa efetiva da IMU, maior intervalo entre amostras, fixos a
 tela ligada/bloqueio e bateria — é a evidência de que a tarefa periódica continuou. A
 política de escalonamento é a do Linux/Android (CFS, sem prioridade de tempo real), então o
 período é solicitado, não garantido; a medição de Cᵢ e a análise de escalonabilidade são da
-AV2 (capacidade 6).
+AV2 (capacidade 6). O serviço em primeiro plano mantém o processo e a IMU, mas, sem a permissão de
+localização em segundo plano, não manteve o GPS com a tela apagada (4.4, D-23).
 
 ## 3.7 Ensaio reprodutível
 
@@ -194,9 +207,23 @@ Comandos: `scripts\av1_evidencias.ps1` (gera 4.2 a 4.8) e o roteiro de `docs/ENS
 
 ## 4.1 Telas implementadas
 
-⟪Inserir capturas: tela principal com a linha "Fixos GNSS · IMU · tempo"; notificação na
-tela de bloqueio; Configurações → Diagnóstico; tela Ensaio AV1 durante a reprodução com
-"ERRO GROSSEIRO". Legenda em cada figura.⟫
+Capturas do aparelho usado nas coletas (Samsung SM-S926B), feitas em 22/10/2026 no campus da UFLA.
+
+<!-- figura: telas/01_tela_principal.jpg | Figura 1 — Tela principal 19 s depois de ativar: a segunda linha do status mostra fixos GNSS, leituras IMU com a taxa e o tempo de gravação; o ponto no mapa é a posição atual. -->
+
+<!-- figura: telas/02_notificacao_bloqueio.jpg | Figura 2 — Tela de bloqueio aos 16 min 18 s da sessão de 4.4 (recortada: o fundo da tela de bloqueio foi removido). A IMU segue a 50 Hz; o contador parado em 238 fixos GNSS é o corte do GPS descrito em 4.4, que começou cerca de 3 min depois de a tela apagar. -->
+
+<!-- figura: telas/03_ensaio_erro_grosseiro.jpg | Figura 3 — Tela Ensaio AV1 ao fim da reprodução da caminhada (908 fixos, semente 20261020, salto de 30 m no fixo 454), em duas partes da mesma lista de eventos. O salto foi detectado com z = 39,7; as outras 17 eliminações não foram injetadas. -->
+
+A reprodução da Figura 3 usa janela deslizante: cada fixo passa por até 10 janelas, contra uma
+só nas janelas disjuntas de 4.6, e por isso aparecem mais alarmes do que na tabela. As 17
+eliminações não injetadas formam quatro grupos, e todos caem onde o movimento muda de repente:
+fixos 66–69, na saída do repouso, com o rumo girando 35° em 3 s; 227–232, com a velocidade
+pulando de 0,74 para 1,05 m/s; 517–522, numa curva em que o rumo girou cerca de 180° em 3 s; e
+695–697, logo depois dos 3 s em que o receptor informou velocidade 0 (fixos 692–694). Nesses
+trechos, a velocidade Doppler, com acurácia declarada de 0,1 a 0,3 m/s, não fecha com o
+deslocamento das posições. Pode ser atraso do filtro de posição do próprio receptor ou um erro real
+da velocidade; sem verdade de campo, o método aponta a inconsistência, mas não diz qual das duas.
 
 ## 4.2 Saída do comando de teste
 
@@ -210,23 +237,79 @@ tela de bloqueio; Configurações → Diagnóstico; tela Ensaio AV1 durante a re
 
 <!-- incluir: resultados/aquisicao.md -->
 
+**Leitura.** A tarefa periódica não parou: 36,2 min contínuos com a tela bloqueada, nenhuma
+linha do registro com intervalo acima de 1,02 s, acelerômetro a 50 Hz e nenhuma leitura descartada.
+As 4 linhas sem lote IMU são o efeito de fase de 3.5 (as leituras foram no lote seguinte); o
+padrão é o esperado sem a correção D-22, que o commit `9ffba37` desfez por engano e que foi
+restaurada em seguida.
+
+**O que não ficou contínuo foi o GPS.** Cerca de 3 min depois que a tela apaga, o aparelho
+(Samsung SM-S926B) para de entregar fixos `gps`, e eles voltam no instante em que a tela acende.
+Aconteceu três vezes, sempre com o mesmo atraso de ~180 s; a mais longa durou 734,5 s. O
+processo continuou vivo (IMU e registro seguiram) e o provedor de rede continuou entregando
+posição a cada 20 s, com r68 mediano de 100 m. Para a malha, isso quer dizer: **o nó nunca
+ficou mais de 20,1 s sem posição para anunciar, mas com a tela apagada há mais de 3 min a
+posição anunciada num SOS tem raio de ~100 m em vez de ~1 m.** 
+
+**Causa e correção (D-23).** O roteiro da disciplina (seção 12, "A aquisição para quando bloqueio
+a tela") manda conferir três coisas. Duas estavam atendidas nesta sessão: o serviço é do tipo
+`location` e a bateria do Rastro estava em "Irrestrito". Faltava a terceira: o app não declarava a
+permissão de localização em segundo plano, e por isso o Android nem oferecia a opção "Permitir o
+tempo todo". Declaramos `ACCESS_BACKGROUND_LOCATION` no manifesto e repetimos o teste num segundo
+aparelho (Samsung SM-S938B, Android 16), com a permissão concedida à mão. Com a economia de
+energia ligada, o GPS ainda parou. Com ela desligada, o contador de fixos GNSS da notificação
+continuou subindo com a tela apagada. Esse teste foi conferido só pelo contador: o registro não foi
+copiado, então não há números dele. A sessão de 30 min com a correção e o pedido da permissão
+dentro do app, num passo separado da localização de primeiro plano, ficam para a AV2.
+
 ## 4.5 Dispersão das leituras estáticas e razão de otimismo
 
 <!-- incluir: resultados/estatico.md -->
 
-<!-- figura: resultados/dispersao_estatica.svg | Figura 1 — Posições GNSS com o aparelho parado, em relação à média. Tracejado: r68 médio declarado; contínuo: raio que contém 68% dos fixos medidos. -->
+<!-- figura: resultados/dispersao_estatica.svg | Figura 4 — Posições GNSS com o aparelho parado, em relação à média. Tracejado: r68 médio declarado; contínuo: raio que contém 68% dos fixos medidos. -->
+
+**Leitura.** O registro estático é a mesma sessão de 4.4. A razão 3,32 junta dois comportamentos
+diferentes do receptor. Nos primeiros 4 min, ele declarava r68 mediano de 1,0 m e estava em média
+a 12,9 m da posição em que se estabilizou depois (86% desses fixos fora do próprio r68): o erro
+lento do GNSS não está na acurácia informada. Depois do corte de 4.4, a posição praticamente não
+muda: no registro inteiro, 94% dos fixos repetem exatamente a posição anterior, porque o receptor
+retém a posição com o aparelho parado. O valor da razão depende de quanto tempo de cada trecho entra na
+média; a conclusão que vale é qualitativa e importa para a reconciliação: **a acurácia declarada
+não cobre o erro de longo período**. A janela de reconciliação (9 s) não é afetada por ele, porque o
+erro lento quase não muda entre fixos vizinhos (4.6).
 
 ## 4.6 Resíduo antes e depois da reconciliação
 
 <!-- incluir: resultados/residuos.md -->
 
+**Leitura.** Caminhada de 15 min no campus, com a tela ligada, sem lacuna de GPS: 85 janelas
+úteis. O resíduo RMS das restrições cai de 0,10–1,28 m (mediana 0,21 m) para menos de 10⁻¹⁴ m em
+todas, ou seja, A·ŷ = 0 a menos de erro numérico. A média de γ/m foi 0,24, bem abaixo de 1, e
+nenhuma janela passou do χ² de 95%. Isso é coerente com 4.5: na diferença entre fixos de 1 s o erro
+lento se cancela, e a acurácia declarada fica conservadora para a restrição. As 5 janelas
+descartadas são do início, com o aparelho ainda parado e a posição retida. Na janela 65, sem
+nada injetado, o detector retirou três fixos seguidos pela velocidade norte (z de 4,7 a 5,2); logo
+antes deles, o receptor informou velocidade 0, sem rumo, por 3 s no meio da caminhada. Sem verdade
+de campo não dá para dizer se foi uma parada real ou um corte do receptor, nem garantir que, com
+três fixos envolvidos, a eliminação serial retirou os fixos certos.
+
 ## 4.7 Sem o detector de erro grosseiro, a reconciliação piora
 
 <!-- incluir: resultados/demonstracao_detector.md -->
 
+**Leitura.** Com um salto de 30 m no fixo central, a reconciliação sem o detector afasta os
+fixos vizinhos, que estavam corretos, em média 2,94 m da referência; com o detector, 0,07 m. O
+fixo corrompido foi detectado e localizado nas 85 janelas.
+
 ## 4.8 Sensibilidade da detecção à degradação injetada
 
 <!-- incluir: resultados/sensibilidade.md -->
+
+**Leitura.** A detecção começa a falhar entre 2 m (6%) e 5 m (92%): abaixo de ~5 m, um salto
+se confunde com o ruído que o próprio receptor declara (r68 mediano de 1,5 m na caminhada). A
+perda de fixos, até 50%, não muda a detecção; só deixa janelas inviáveis. O limite real do método
+aparece no ruído: 1 m de ruído branco que o sensor **não declara** já gera 33% de falso alarme, e
+2 m, 94%. O detector é tão bom quanto a honestidade da acurácia informada — o mesmo ponto de 4.5.
 
 # 5. Integração
 
@@ -253,21 +336,37 @@ seção 2 já traz o levantamento do histórico até 21/10. Incluir os commits d
 - **IMU sem reconciliação.** A API padrão não informa σ por eixo do acelerômetro (D-07);
   a IMU entra só na aquisição periódica.
 - **Período não garantido.** Android não é tempo real; Cᵢ e escalonabilidade ficam para a AV2.
-- **Energia.** Wake lock, GNSS a 1 s e IMU contínua aumentam o consumo, medido em 4.4.
+- **GPS com a tela apagada.** Na sessão gravada, o GPS parou ~3 min depois que a tela apagou e a
+  posição caiu para a de rede (r68 ~100 m) até a tela acender (4.4). A causa era a falta da
+  permissão de localização em segundo plano, já declarada no manifesto (D-23). A correção foi
+  conferida num teste curto, sem registro copiado; a sessão de 30 min com ela é da AV2. A
+  permissão ainda é concedida à mão nas configurações, e a economia de energia do aparelho
+  precisa estar desligada.
+- **Posição retida.** Parado, o receptor repete a posição; o ensaio estático mistura um viés
+  inicial de ~13 m com um trecho sem variação, e a razão de otimismo depende dessa mistura (4.5).
+- **Um aparelho só.** Todas as medições são de um Samsung SM-S926B, numa sessão parada e uma
+  caminhada no campus; outro receptor pode se comportar de outro jeito.
+- **Energia.** Wake lock, GNSS a 1 s e IMU contínua consomem 8,3 %/h com a tela bloqueada (4.4).
 - **Dado pessoal em claro.** O registro fica sem cifra no armazenamento do app até a AV2
   (`AesGcmVault`, D-03); os registros publicados foram gravados no campus.
 - **Processo.** ⟪Assumir com honestidade: a `main` ficou na semana 1 e não houve PR revisado
   nas semanas 2 a 5; não há integração contínua configurada.⟫
 - **Compilação Android.** As partes Android desta entrega não foram compiladas no ambiente
-  do assistente (sem SDK); foram compiladas e testadas por ⟪quem⟫ em ⟪data⟫ com `gradlew`.
+  do assistente (sem SDK); foram compiladas e testadas por Juliano Cesar Ferreira Ramos em
+  21/10/2026 com `gradlew` e instaladas no aparelho (4.2).
 
 # 8. Declaração de uso de IA
 
 Usamos o assistente Claude (Anthropic) em 21/10/2026 para gerar o pacote `av1` (seção 2),
 as ligações no serviço e nas telas, os testes da AV1, os scripts, este rascunho de
 relatório e os slides. O assistente compilou e executou na JVM, no ambiente dele (Kotlin
-2.0.21, JUnit 4.13.2), os testes de domínio, S2 e AV1 — 82 testes, zero falhas — e gerou o
-Apêndice A com dados sintéticos. Ele não teve acesso a aparelho nem aos dados físicos.
+2.0.21, JUnit 4.13.2), os testes de domínio, S2 e AV1 — 84 testes, zero falhas — e gerou o
+Apêndice A com dados sintéticos. Ele não teve acesso ao aparelho; em 22/10/2026 leu os registros
+reais depois de copiados para o computador, rodou as análises de 4.4 a 4.8 e propôs o descarte das
+janelas com posição retida (D-24) e as linhas de GPS e de lote IMU da tabela 4.4.
+
+Juliano Cesar Ferreira Ramos usou o Codex (OpenAI) em 21/10/2026 para compilar, rodar a suíte,
+instalar e testar no aparelho e propor a correção de fase do `GravadorAquisicao` (D-22).
 
 O que cada integrante verificou por conta própria: ⟪preencher por integrante — por exemplo:
 leu e explicou a fórmula de reconciliação; conferiu o sinal da matriz A; rodou `gradlew test`;

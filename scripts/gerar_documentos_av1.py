@@ -70,7 +70,12 @@ def resolver_inclusoes(md: str) -> str:
         rel, legenda = [p.strip() for p in m.group(1).split("|", 1)]
         alvo = EVID / rel
         if not alvo.exists():
-            return pendente(f"figura `{rel}` (gerada por EvidenciasAv1Test com o registro estático)")
+            # Capturas de tela podem vir como .png ou .jpg; aceita qualquer uma com o mesmo nome.
+            alternativas = [alvo.with_suffix(ext) for ext in (".png", ".jpg", ".jpeg", ".svg")]
+            alvo = next((a for a in alternativas if a.exists()), alvo)
+        if not alvo.exists():
+            origem = "gerada por EvidenciasAv1Test" if rel.startswith("resultados/") else "salvar a captura com este nome"
+            return pendente(f"figura `docs/evidencias/{rel}` ({origem})")
         return f"![{legenda}]({alvo.as_posix()})"
 
     md = re.sub(r"<!--\s*incluir:\s*(.+?)\s*-->", incluir, md)
@@ -99,7 +104,7 @@ tr { break-inside: avoid; }
 blockquote { margin: 4pt 0 8pt 0; padding: 4pt 8pt; border-left: 3px solid #5E4AE3; background: #F7F6FE; color: #333; }
 blockquote p { margin: 0; }
 figure { margin: 6pt 0 10pt 0; text-align: center; break-inside: avoid; }
-figure img { max-width: 72%; }
+figure img { max-width: 72%; max-height: 125mm; }
 figcaption { font-size: 8.5pt; color: #444; margin-top: 3pt; }
 .formula { text-align: center; font-weight: 600; font-size: 10.5pt; margin: 4pt 0 8pt 0; }
 .formula p { text-align: center; margin: 0; }
@@ -348,7 +353,7 @@ def gerar_slides():
     # 9 — MVP
     sl = base("MVP ao vivo — o caminho do dado", "MVP ao vivo · ⟪quem apresenta⟫ · 9 min", 9)
     passos = [
-        ("1", "Aparelho bloqueado", "notificação na tela de bloqueio: Fixos GNSS · IMU · tempo subindo (ativado 30+ min antes)"),
+        ("1", "Aparelho bloqueado", "notificação na tela de bloqueio: fixos GNSS, IMU e tempo subindo (ativado 30+ min antes; \"Permitir o tempo todo\", economia de energia desligada)"),
         ("2", "Ensaio AV1", "toque longo no status → bloco de aquisição ao vivo"),
         ("3", "Reprodução ×10", "registro da caminhada, salto de 30 m, semente 20261020"),
         ("4", "Resíduo na tela", "RMS antes → depois (≈ 10⁻¹⁵ m), γ contra χ² 95%"),
@@ -365,10 +370,11 @@ def gerar_slides():
     linhas = [
         ("Testes de unidade", "gradlew test", "ver testes_unidade.md" if (RES / "testes_unidade.md").exists() else P),
         ("Teste de corrida", "10 execuções independentes", "ver corrida_10_execucoes.md" if (RES / "corrida_10_execucoes.md").exists() else P),
-        ("Aquisição bloqueada", "maior trecho contínuo", f"{f(aq['bloqueado_min'], 1, ' min')} · {aq['fixos']} fixos · IMU {f(aq['imu_hz_medio'], 1, ' Hz')}" if aq else P),
+        ("Aquisição bloqueada", "maior trecho contínuo", f"{f(aq['bloqueado_min'], 1, ' min')} · IMU {f(aq['imu_hz_medio'], 1, ' Hz')} · {aq['imu_descartadas']} leituras perdidas" if aq and 'imu_descartadas' in aq else P),
+        ("Posição com a tela apagada", "mesmo trecho", f"GPS em {f(aq['cobertura_gps'] * 100, 0, '%')} do tempo · sem GPS, rede a cada ≤ {f(aq['maior_intervalo_qualquer_fixo_s'], 0, ' s')} (r68 {f(aq['r68_rede_mediano_m'], 0, ' m')})" if aq and aq.get('cobertura_gps') is not None else P),
         ("Consumo", "bateria durante o trecho", f(aq['consumo_pct_h'], 1, ' %/h') if aq and aq.get('consumo_pct_h') is not None else P),
-        ("Razão de otimismo", "aparelho parado, céu aberto", f(est['razao_otimismo'], 2) if est else P),
-        ("Resíduo RMS", f"{rec['janelas']} janelas reais" if rec else "≥ 3 janelas reais", f"{f(rec['rms_antes_medio_m'], 2, ' m')} → {rec['rms_depois_max_m']:.0e} m" if rec else P),
+        ("Razão de otimismo", "aparelho parado, mesma sessão", f(est['razao_otimismo'], 2) if est else P),
+        ("Resíduo RMS", f"{rec['janelas']} janelas reais da caminhada" if rec else "≥ 3 janelas reais", f"{f(rec['rms_antes_medio_m'], 2, ' m')} → {rec['rms_depois_max_m']:.0e} m" if rec else P),
         ("Salto mínimo detectável", "≥ 90% de detecção", f(rec['salto_minimo_90pct_m'], 0, ' m') if rec and rec.get('salto_minimo_90pct_m') is not None else P),
     ]
     tab = sl.shapes.add_table(len(linhas) + 1, 3, cm(1.2), cm(3), cm(31.5), cm(12)).table
@@ -383,9 +389,9 @@ def gerar_slides():
             cel.fill.solid(); cel.fill.fore_color.rgb = rgb(VIOLETA if i == 0 else ("#FFFFFF" if i % 2 else CLARO))
             for par in cel.text_frame.paragraphs:
                 for r in par.runs:
-                    r.font.size = Pt(17); r.font.name = FONTE_NOME; r.font.bold = (i == 0)
+                    r.font.size = Pt(15); r.font.name = FONTE_NOME; r.font.bold = (i == 0)
                     r.font.color.rgb = rgb("#FFFFFF" if i == 0 else ESCURO)
-    caixa(sl, cm(1.2), cm(15.4), cm(31), cm(1.5), "Aparelho: ⟪modelo, Android⟫ · local: ⟪campus⟫ · data: ⟪data⟫ · comando: scripts\\av1_evidencias.ps1 · semente 20261020", 12, "#6B6F80")
+    caixa(sl, cm(1.2), cm(15.4), cm(31), cm(1.5), "Aparelho: Samsung SM-S926B · local: campus da UFLA · coletas: 22/10/2026 · comando: scripts\\av1_evidencias.ps1 · semente 20261020", 12, "#6B6F80")
 
     # 11 — limitações
     sl = base("Limitações e próximo passo", "Resultados · ⟪quem apresenta⟫", 11)
@@ -393,11 +399,13 @@ def gerar_slides():
         [("O que não sabemos ainda", True)],
         "Sem verdade de campo: a referência é a janela limpa reconciliada.",
         "Erro de GNSS é correlacionado no tempo: γ não é exatamente χ².",
-        "IMU sem reconciliação: a API não informa σ por eixo.",
+        "Sessão gravada: GPS parou ~3 min após a tela apagar (faltava a localização em segundo plano; corrigido e conferido em teste curto).",
+        "Parado, o receptor retém a posição: a razão de otimismo mistura viés inicial e posição congelada.",
         "Registro em claro até a cifragem da AV2.",
-    ], 19)
+    ], 17)
     caixa(sl, cm(17.5), cm(3), cm(15.3), cm(14), [
         [("AV2", True)],
+        "Pedir a localização em segundo plano dentro do app e regravar os 30 min com GPS",
         "Cᵢ medido e escalonabilidade das 4 tarefas periódicas",
         "Aprendizado online dos encontros de rede",
         "Agente com RuleEngine e modelo removível",
