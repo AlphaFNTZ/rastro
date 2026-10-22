@@ -118,7 +118,7 @@ class GravadorAquisicao(private val context: Context) {
             resumo = ResumoAquisicao(gravando = true, inicioMonotonicoMs = SystemClock.elapsedRealtime(),
                 arquivoGnss = arqGnss.name, arquivoAquisicao = arqAq.name, diretorio = dir.absolutePath)
             periodica = Executors.newSingleThreadScheduledExecutor { Thread(it, "rastro-registro-1hz") }.also {
-                it.scheduleAtFixedRate({ escreverLinhaAquisicao() }, 1, 1, TimeUnit.SECONDS)
+                it.scheduleAtFixedRate({ escreverLinhaAquisicao() }, PRIMEIRO_REGISTRO_MS, 1_000, TimeUnit.MILLISECONDS)
             }
         }
     }
@@ -162,6 +162,13 @@ class GravadorAquisicao(private val context: Context) {
     }
 
     private fun escreverLinhaAquisicao() {
+        // O consumidor IMU também é periódico (1 s com atraso fixo) e a fase entre as duas tarefas
+        // escorrega devagar. Quando o lote do consumidor ainda não chegou nesta janela, espera
+        // FORA do monitor por até ESPERA_IMU_VAZIA_MS pela entrega real, em vez de gravar zero.
+        val janelaImuVazia = synchronized(lock) { aquisicao != null && imuJanela == 0 }
+        if (janelaImuVazia) {
+            try { Thread.sleep(ESPERA_IMU_VAZIA_MS) } catch (e: InterruptedException) { Thread.currentThread().interrupt() }
+        }
         // Lê bateria e tela FORA da região crítica: chamadas de sistema podem demorar.
         val agoraNs = SystemClock.elapsedRealtimeNanos()
         val interativa = context.getSystemService(PowerManager::class.java)?.isInteractive ?: true
@@ -221,6 +228,9 @@ class GravadorAquisicao(private val context: Context) {
     companion object {
         /** Limite de segurança do wake lock; uma sessão de ensaio nunca passa disso. */
         const val WAKE_LOCK_MAX_MS = 4L * 60 * 60 * 1000
+        /** O consumidor IMU começa em 1 s; começar o registro em 1,5 s deixa as duas tarefas meio período defasadas. */
+        const val PRIMEIRO_REGISTRO_MS = 1_500L
+        private const val ESPERA_IMU_VAZIA_MS = 100L
 
         fun paraRegistro(l: Location): RegistroFix = RegistroFix(
             tempoMonotonicoNs = l.elapsedRealtimeNanos,
