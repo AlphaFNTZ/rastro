@@ -82,12 +82,16 @@ object SaidaEvidencias {
         appendLine("| IMU: taxa média / mínima (Hz) | ${f(r.imuHzMedio, 1)} / ${f(r.imuHzMinimo, 1)} |")
         appendLine("| IMU: maior intervalo entre amostras (ms) | ${f(r.imuDtMaxMs, 1)} |")
         appendLine("| IMU: leituras / descartadas no trecho | ${r.imuLeiturasNoTrecho} / ${r.descartadasNoTrecho} |")
-        appendLine("| GNSS: fixos no trecho | ${r.fixosNoTrecho} |")
-        appendLine("| GNSS: maior intervalo entre fixos (s) | ${f(r.maiorIntervaloFixosS, 1)} |")
+        appendLine("| IMU: linhas sem lote (as leituras vão no lote seguinte) | ${r.janelasImuVazias} de ${maxOf(0, r.linhasNoTrecho - 1)} |")
+        appendLine("| Posição: fixos no trecho (todos / só gps) | ${r.fixosNoTrecho} / ${r.fixosGpsNoTrecho ?: "—"} |")
+        appendLine("| GNSS: parte do trecho com fixo gps seguido (≤ 3 s) | ${r.coberturaGps?.let { f(it * 100, 0) + "%" } ?: "—"} |")
+        appendLine("| GNSS: maior intervalo entre fixos gps (s) | ${f(r.maiorIntervaloFixosS, 1)} |")
+        appendLine("| Posição: maior intervalo entre fixos de qualquer provedor (s) | ${f(r.maiorIntervaloQualquerFixoS, 1)} |")
+        appendLine("| Posição: r68 mediano dos fixos de rede (m) | ${f(r.r68RedeMedianoM, 1)} |")
         appendLine("| Bateria início → fim (%) | ${r.bateriaInicio ?: "—"} → ${r.bateriaFim ?: "—"} |")
         appendLine("| Consumo (%/h) | ${f(r.consumoPctHora, 1)} |")
         appendLine("| Temperatura máxima da bateria (°C) | ${f(r.temperaturaMaxC, 1)} |")
-        appendLine("| Critério (≥ 30 min bloqueado, IMU e GNSS chegando) | ${if (r.atendeCriterio) "ATENDIDO" else "NÃO ATENDIDO"} |")
+        appendLine("| Critério declarado (≥ 30 min bloqueado, lacuna ≤ 5 s, IMU e fixos chegando) | ${if (r.atendeCriterio) "ATENDIDO" else "NÃO ATENDIDO"} |")
     }
 
     /** Gráfico de dispersão das posições estáticas (m), com o círculo do r68 médio declarado e do 68% medido. */

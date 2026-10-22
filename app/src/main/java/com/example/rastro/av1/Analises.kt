@@ -73,14 +73,24 @@ object AnaliseEstatica {
  * @property bloqueadoMin maior trecho contínuo em repouso: aparelho bloqueado ou tela apagada.
  * @property maiorLacunaRegistroS maior intervalo entre linhas do registro dentro do trecho
  *   (o consumidor grava a cada 1 s; lacuna grande = tarefa periódica parou).
- * @property imuHzMedio, imuHzMinimo taxa efetiva do acelerômetro no trecho (solicitado: 50 Hz).
+ * @property linhasNoTrecho linhas do registro dentro desse trecho.
+ * @property imuHzMedio, imuHzMinimo taxa efetiva do acelerômetro no trecho (solicitado: 50 Hz), por linha;
+ *   as linhas sem lote ficam de fora da média e do mínimo e são contadas em [janelasImuVazias].
  * @property imuDtMaxMs maior intervalo entre amostras IMU no trecho.
- * @property fixosNoTrecho fixos GNSS recebidos durante o trecho bloqueado.
+ * @property janelasImuVazias linhas do trecho em que nenhum lote IMU chegou (imu_janela = 0). As leituras
+ *   não se perdem: vão no lote seguinte. É o efeito de fase entre duas tarefas de 1 s (D-22).
+ * @property fixosNoTrecho fixos de posição recebidos no trecho, de qualquer provedor (gps ou rede).
+ * @property fixosGpsNoTrecho só os do provedor "gps" (null sem arquivo GNSS).
+ * @property coberturaGps fração do trecho coberta por fixos "gps" seguidos (intervalo ≤ 3 s).
  * @property maiorIntervaloFixosS maior intervalo entre fixos "gps" no trecho (null sem arquivo GNSS).
+ * @property maiorIntervaloQualquerFixoS maior intervalo entre fixos de qualquer provedor: quanto tempo
+ *   o nó ficou sem nenhuma posição nova para anunciar na malha.
+ * @property r68RedeMedianoM mediana do r68 declarado dos fixos de rede (não gps) no trecho.
  * @property bateriaInicio, bateriaFim carga em %; consumoPctHora = queda por hora.
  */
 data class ResultadoAquisicao(
     val linhas: Int,
+    val linhasNoTrecho: Int,
     val duracaoTotalMin: Double,
     val bloqueadoMin: Double,
     val bloqueadoInicioUtcMs: Long?,
@@ -91,8 +101,13 @@ data class ResultadoAquisicao(
     val imuDtMaxMs: Double?,
     val imuLeiturasNoTrecho: Long,
     val descartadasNoTrecho: Long,
+    val janelasImuVazias: Int,
     val fixosNoTrecho: Long,
+    val fixosGpsNoTrecho: Int?,
+    val coberturaGps: Double?,
     val maiorIntervaloFixosS: Double?,
+    val maiorIntervaloQualquerFixoS: Double?,
+    val r68RedeMedianoM: Double?,
     val bateriaInicio: Int?,
     val bateriaFim: Int?,
     val consumoPctHora: Double?,
@@ -125,13 +140,18 @@ object AnaliseAquisicao {
         val trecho = if (melhorIni < 0) emptyList() else r.subList(melhorIni, melhorFim + 1)
         val lacuna = trecho.zipWithNext().maxOfOrNull { (a, b) -> (b.tempoMonotonicoNs - a.tempoMonotonicoNs) / 1e9 } ?: 0.0
         val hz = trecho.drop(1).map { it.imuHz }.filter { it > 0 }
-        val gpsNoTrecho = if (trecho.isEmpty()) emptyList() else fixos.filter { it.provedor == "gps" &&
+        val noTrecho = if (trecho.isEmpty()) emptyList() else fixos.filter {
             it.tempoMonotonicoNs in trecho.first().tempoMonotonicoNs..trecho.last().tempoMonotonicoNs }.sortedBy { it.tempoMonotonicoNs }
+        val gpsNoTrecho = noTrecho.filter { it.provedor == "gps" }
+        val intervalo = { a: RegistroFix, b: RegistroFix -> (b.tempoMonotonicoNs - a.tempoMonotonicoNs) / 1e9 }
+        val duracaoTrechoS = if (trecho.size >= 2) (trecho.last().tempoMonotonicoNs - trecho.first().tempoMonotonicoNs) / 1e9 else 0.0
+        val r68Rede = noTrecho.filter { it.provedor != "gps" }.mapNotNull { it.acuraciaHorizontalM }.sorted()
         val bat0 = trecho.firstOrNull()?.bateriaPct
         val bat1 = trecho.lastOrNull()?.bateriaPct
         val horas = if (trecho.size >= 2) duracao(trecho.first(), trecho.last()) / 60 else 0.0
         return ResultadoAquisicao(
             linhas = r.size,
+            linhasNoTrecho = trecho.size,
             duracaoTotalMin = duracao(r.first(), r.last()),
             bloqueadoMin = if (trecho.size >= 2) duracao(trecho.first(), trecho.last()) else 0.0,
             bloqueadoInicioUtcMs = trecho.firstOrNull()?.tempoUtcMs,
@@ -142,8 +162,15 @@ object AnaliseAquisicao {
             imuDtMaxMs = trecho.mapNotNull { it.imuDtMaxMs }.maxOrNull(),
             imuLeiturasNoTrecho = if (trecho.size >= 2) trecho.last().imuTotal - trecho.first().imuTotal else 0,
             descartadasNoTrecho = if (trecho.size >= 2) trecho.last().imuDescartadas - trecho.first().imuDescartadas else 0,
+            janelasImuVazias = trecho.drop(1).count { it.imuJanela == 0 },
             fixosNoTrecho = if (trecho.size >= 2) trecho.last().fixosTotal - trecho.first().fixosTotal else 0,
-            maiorIntervaloFixosS = gpsNoTrecho.zipWithNext().maxOfOrNull { (a, b) -> (b.tempoMonotonicoNs - a.tempoMonotonicoNs) / 1e9 },
+            fixosGpsNoTrecho = if (fixos.isEmpty()) null else gpsNoTrecho.size,
+            coberturaGps = if (fixos.isEmpty() || duracaoTrechoS <= 0.0) null else
+                gpsNoTrecho.zipWithNext().map { (a, b) -> intervalo(a, b) }.filter { it <= 3.0 }.sum() / duracaoTrechoS,
+            maiorIntervaloFixosS = gpsNoTrecho.zipWithNext().maxOfOrNull { (a, b) -> intervalo(a, b) },
+            maiorIntervaloQualquerFixoS = noTrecho.zipWithNext().maxOfOrNull { (a, b) -> intervalo(a, b) },
+            r68RedeMedianoM = if (r68Rede.isEmpty()) null else
+                if (r68Rede.size % 2 == 1) r68Rede[r68Rede.size / 2] else (r68Rede[r68Rede.size / 2 - 1] + r68Rede[r68Rede.size / 2]) / 2,
             bateriaInicio = bat0, bateriaFim = bat1,
             consumoPctHora = if (bat0 != null && bat1 != null && horas > 0.05) (bat0 - bat1) / horas else null,
             temperaturaMaxC = trecho.mapNotNull { it.temperaturaBateriaC }.maxOrNull()

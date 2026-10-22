@@ -229,6 +229,39 @@ class AnalisesTest {
         val comLacuna = linhas.filterIndexed { i, _ -> i !in 1300..1360 }
         assertFalse(AnaliseAquisicao.analisar(comLacuna).atendeCriterio)
     }
+
+    @Test fun `corte do gps com a tela apagada aparece na cobertura e no intervalo entre fixos`() {
+        // 600 s bloqueado; IMU sem lote nas linhas 100 e 400; gps a 1 Hz exceto entre 200 s e 500 s,
+        // quando só chega posição de rede (r68 = 100 m) a cada 20 s.
+        val linhas = (0..600).map { s ->
+            RegistroAquisicao(1_000_000_000L + s * 1_000_000_000L, 1_790_000_000_000L + s * 1000L, s * 50L,
+                if (s == 100 || s == 400) 0 else 50, if (s == 100 || s == 400) 0.0 else 50.0, 20.0, 25.0, 0, s.toLong(),
+                telaInterativa = false, bloqueado = true, bateriaPct = 90, temperaturaBateriaC = 30.0)
+        }
+        fun fixo(s: Int, provedor: String, r68: Double) = RegistroFix(1_000_000_000L + s * 1_000_000_000L,
+            1_790_000_000_000L + s * 1000L, Sintetico.LAT0, Sintetico.LON0, r68, 0.0, 0.1, null, null, provedor)
+        val fixos = (0..600).filter { it <= 200 || it >= 500 }.map { fixo(it, "gps", 3.0) } +
+            (200..500 step 20).map { fixo(it, "network", 100.0) }
+        val r = AnaliseAquisicao.analisar(linhas, fixos)
+        assertEquals(2, r.janelasImuVazias)
+        assertEquals(300.0, r.maiorIntervaloFixosS!!, 1e-9)
+        assertEquals(20.0, r.maiorIntervaloQualquerFixoS!!, 1e-9)
+        assertEquals(0.5, r.coberturaGps!!, 1e-9)
+        assertEquals(100.0, r.r68RedeMedianoM!!, 1e-9)
+        assertEquals(302, r.fixosGpsNoTrecho)
+    }
+}
+
+class JanelasTest {
+    @Test fun `janela com posicao retida pelo receptor e reconhecida`() {
+        val parado = (0 until 10).map { k -> RegistroFix(1_000_000_000L + k * 1_000_000_000L, 1_790_000_000_000L + k * 1000L,
+            Sintetico.LAT0, Sintetico.LON0, 0.5, 0.0, 0.1, null, null, "gps") }
+        assertTrue(Janelas.retida(parado))
+        // Basta um fixo com posição ou velocidade diferente para a janela ter informação.
+        assertFalse(Janelas.retida(parado.mapIndexed { i, f -> if (i == 5) f.copy(longitude = f.longitude + 1e-6) else f }))
+        assertFalse(Janelas.retida(parado.mapIndexed { i, f -> if (i == 5) f.copy(velocidadeMps = 0.2) else f }))
+        assertFalse(Janelas.retida(Sintetico.caminhada(10, 3)))
+    }
 }
 
 class ReprodutorRegistroTest {

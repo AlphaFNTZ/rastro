@@ -64,7 +64,10 @@ class EvidenciasAv1Test {
         val r = AnaliseAquisicao.analisar(linhas, gnss)
         saida("aquisicao.md", cabecalho("Aquisição periódica com o aparelho bloqueado", arquivos) + SaidaEvidencias.tabelaAquisicao(r))
         saida("aquisicao.json", SaidaEvidencias.json(mapOf("bloqueado_min" to r.bloqueadoMin, "fixos" to r.fixosNoTrecho,
-            "imu_hz_medio" to r.imuHzMedio, "imu_hz_min" to r.imuHzMinimo, "maior_intervalo_fixos_s" to r.maiorIntervaloFixosS,
+            "fixos_gps" to r.fixosGpsNoTrecho, "imu_hz_medio" to r.imuHzMedio, "imu_hz_min" to r.imuHzMinimo,
+            "imu_linhas_sem_lote" to r.janelasImuVazias, "imu_leituras" to r.imuLeiturasNoTrecho, "imu_descartadas" to r.descartadasNoTrecho,
+            "cobertura_gps" to r.coberturaGps, "maior_intervalo_fixos_s" to r.maiorIntervaloFixosS,
+            "maior_intervalo_qualquer_fixo_s" to r.maiorIntervaloQualquerFixoS, "r68_rede_mediano_m" to r.r68RedeMedianoM,
             "consumo_pct_h" to r.consumoPctHora, "atende" to r.atendeCriterio)))
     }
 
@@ -72,7 +75,10 @@ class EvidenciasAv1Test {
         val arquivos = dados("movimento", "gnss_")
         assumeTrue("sem registro em movimento", arquivos.isNotEmpty())
         val fixos = arquivos.flatMap { RegistroFixCsv.ler(it.readText()) }
-        val janelas = Janelas.disjuntas(fixos, TAMANHO_JANELA)
+        val todas = Janelas.disjuntas(fixos, TAMANHO_JANELA)
+        // Janelas com a posição retida pelo receptor (aparelho imóvel) já têm A·y = 0: ficam de fora.
+        val janelas = todas.filterNot { Janelas.retida(it) }
+        val retidas = todas.size - janelas.size
         assumeTrue("menos de 3 janelas de $TAMANHO_JANELA fixos contínuos", janelas.size >= 3)
         val detector = DetectorErroGrosseiro()
         val residuos = TabelaResiduos.calcular(janelas, detector)
@@ -83,7 +89,9 @@ class EvidenciasAv1Test {
         check(sens == sensRepetida) { "Ensaio não determinístico" }
         val minimo = EnsaioSensibilidade.saltoMinimoDetectavel(sens)
         saida("residuos.md", cabecalho("Resíduo das restrições antes e depois da reconciliação", arquivos) +
-            "Janelas disjuntas de $TAMANHO_JANELA fixos GPS contínuos (Δt ≤ 3 s). Restrição: pₐ(k+1) − pₐ(k) − ½(vₐ(k)+vₐ(k+1))Δtₖ = 0.\n\n" +
+            "Janelas disjuntas de $TAMANHO_JANELA fixos GPS contínuos (Δt ≤ 3 s). Restrição: pₐ(k+1) − pₐ(k) − ½(vₐ(k)+vₐ(k+1))Δtₖ = 0.\n" +
+            "Descartadas $retidas de ${todas.size} janelas com a posição retida pelo receptor (mesma posição e velocidade zero " +
+            "em todos os fixos: A·y = 0 já antes de reconciliar). Restam ${janelas.size}.\n\n" +
             SaidaEvidencias.tabelaResiduos(residuos))
         saida("demonstracao_detector.md", cabecalho("Sem o detector, a reconciliação piora", arquivos) +
             "Salto de 30 m injetado no fixo central de cada janela; referência = reconciliação da janela limpa.\n\n" +
@@ -94,6 +102,7 @@ class EvidenciasAv1Test {
             SaidaEvidencias.tabelaSensibilidade(sens))
         saida("reconciliacao.json", SaidaEvidencias.json(mapOf(
             "janelas" to janelas.size,
+            "janelas_retidas_descartadas" to retidas,
             "rms_antes_medio_m" to residuos.map { it.rmsAntesM }.average(),
             "rms_depois_max_m" to residuos.maxOf { it.rmsDepoisM },
             "janelas_com_eliminacao" to residuos.count { it.eliminados.isNotEmpty() },
