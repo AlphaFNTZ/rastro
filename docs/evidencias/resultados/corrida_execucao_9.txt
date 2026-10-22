@@ -1,0 +1,70 @@
+
+C:\Projetos\rastro>if "Windows_NT" == "Windows_NT" setlocal
+
+C:\Projetos\rastro>set DIRNAME=C:\Projetos\rastro\ 
+
+C:\Projetos\rastro>if "C:\Projetos\rastro\" == "" set DIRNAME=. 
+
+C:\Projetos\rastro>set APP_BASE_NAME=gradlew 
+
+C:\Projetos\rastro>set APP_HOME=C:\Projetos\rastro\ 
+
+C:\Projetos\rastro>for %i in ("C:\Projetos\rastro\") do set APP_HOME=%~fi 
+
+C:\Projetos\rastro>set APP_HOME=C:\Projetos\rastro\ 
+
+C:\Projetos\rastro>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+C:\Projetos\rastro>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+C:\Projetos\rastro>set JAVA_EXE=java.exe 
+
+C:\Projetos\rastro>java.exe -version  1>NUL 2>&1 
+
+C:\Projetos\rastro>if 0 EQU 0 goto execute 
+
+C:\Projetos\rastro>set CLASSPATH= 
+
+C:\Projetos\rastro>"java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -classpath "" -jar "C:\Projetos\rastro\\gradle\wrapper\gradle-wrapper.jar" :app:testDebugUnitTest --tests *CircularImuBufferConcurrencyTest --rerun-tasks --console=plain 
+Reusing configuration cache.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:javaPreCompileDebug
+> Task :app:extractDeepLinksDebug
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:generateDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:checkDebugAarMetadata
+> Task :app:compileDebugNavigationResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:packageDebugResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:mergeDebugResources
+> Task :app:processDebugResources
+> Task :app:compileDebugKotlin
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+
+> Task :app:compileDebugUnitTestKotlin
+w: file:///C:/Projetos/rastro/app/src/test/java/com/example/rastro/av1/EvidenciasAv1Test.kt:29:38 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+w: file:///C:/Projetos/rastro/app/src/test/java/com/example/rastro/av1/EvidenciasAv1Test.kt:43:85 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 10s
+24 actionable tasks: 24 executed
+Configuration cache entry reused.
+
+C:\Projetos\rastro>if 0 EQU 0 goto mainEnd 
+
+C:\Projetos\rastro>if "Windows_NT" == "Windows_NT" endlocal

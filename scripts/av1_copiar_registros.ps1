@@ -1,4 +1,4 @@
-﻿# Copia os registros gravados pelo Rastro no celular (via USB/adb) para docs\evidencias\dados.
+# Copia os registros gravados pelo Rastro no celular (via USB/adb) para docs\evidencias\dados.
 #
 # Uso, na raiz do projeto, com o celular conectado e a depuração USB autorizada:
 #   powershell -ExecutionPolicy Bypass -File scripts\av1_copiar_registros.ps1 -Ensaio estatico -Sessao 20261021_183000
@@ -18,9 +18,30 @@ param(
 )
 $raiz = Split-Path -Parent $PSScriptRoot
 $origem = "/sdcard/Android/data/com.example.rastro/files/registros"
-$adb = "adb"
-if ($env:ANDROID_HOME) { $adb = Join-Path $env:ANDROID_HOME "platform-tools\adb.exe" }
-elseif (Test-Path "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe") { $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" }
+$adb = $null
+foreach ($sdk in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
+    if ($sdk) {
+        $candidato = Join-Path $sdk "platform-tools\adb.exe"
+        if (Test-Path $candidato) { $adb = $candidato; break }
+    }
+}
+if (-not $adb) {
+    $localProperties = Join-Path $raiz "local.properties"
+    if (Test-Path $localProperties) {
+        $sdkDir = (Get-Content $localProperties | Where-Object { $_ -match '^sdk\.dir=' } |
+            Select-Object -First 1) -replace '^sdk\.dir=', '' -replace '\\:', ':'
+        if ($sdkDir) {
+            $candidato = Join-Path $sdkDir "platform-tools\adb.exe"
+            if (Test-Path $candidato) { $adb = $candidato }
+        }
+    }
+}
+if (-not $adb) {
+    $candidato = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+    if (Test-Path $candidato) { $adb = $candidato }
+}
+if (-not $adb) { $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source }
+if (-not $adb) { throw "adb não encontrado. Defina ANDROID_HOME/ANDROID_SDK_ROOT ou sdk.dir em local.properties." }
 
 if ($Listar -or -not $Ensaio -or -not $Sessao) {
     Write-Host "Registros no celular ($origem):"
