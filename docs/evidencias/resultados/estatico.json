@@ -1,0 +1,10 @@
+{
+  "fixos": 1389,
+  "duracao_min": 36.61660963875,
+  "r68_medio_m": 0.9151511879049588,
+  "sigma_declarado_m": 1.1771010173413454,
+  "sigma_leste_m": 5.361689659994383,
+  "sigma_norte_m": 1.3363676963914002,
+  "razao_otimismo": 3.319404931523038,
+  "fracao_dentro_r68": 0.04103671706263499
+}

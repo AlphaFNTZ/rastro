@@ -1,0 +1,13 @@
+{
+  "janelas": 85,
+  "janelas_retidas_descartadas": 5,
+  "rms_antes_medio_m": 0.23538026975581292,
+  "rms_depois_max_m": 2.0438695851363186E-15,
+  "janelas_com_eliminacao": 1,
+  "demo_rms_sem_detector_m": 2.937082061273161,
+  "demo_rms_com_detector_m": 0.0651360583000782,
+  "demo_localizou": 85,
+  "salto_minimo_90pct_m": 5.0,
+  "falso_alarme_controle": 0.0,
+  "semente": 20261020
+}
