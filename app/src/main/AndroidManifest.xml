@@ -20,6 +20,9 @@
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:minSdkVersion="33" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- D-23: sem esta permissão o sistema corta o GPS ~3 min depois que a tela apaga. Concedida à mão em
+         Configurações > Aplicativos > Rastro > Permissões > Localização > Permitir o tempo todo; pedir no app fica para a AV2. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- AV1: mantém a CPU acordada durante a gravação para o acelerômetro seguir com a tela apagada. -->
