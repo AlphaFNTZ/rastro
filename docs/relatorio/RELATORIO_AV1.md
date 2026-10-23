@@ -52,7 +52,8 @@ Código gerado com assistente de IA (seção 8). Comitado por João Paulo Silva 
 Andre Bueno Ocanha como coautor: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `7815b3f`, `216a99b`,
 `b09c873`, `b9c70d3` e `9ffba37`. Juliano Cesar Ferreira Ramos compilou o aplicativo, rodou a
 suíte completa e instalou no aparelho em 21/10/2026 (`cb0468d`, que traz também a correção de
-fase do gravador, D-22, e as evidências 4.2 e 4.3). As coletas físicas foram feitas pelo grupo em
+fase do gravador, D-22). As evidências 4.2 e 4.3 foram geradas de novo por João Paulo Silva com
+`scripts/av1_evidencias.ps1` no commit `710ef50`, com a árvore limpa. As coletas físicas foram feitas pelo grupo em
 22/10/2026 no campus da UFLA; a sessão bloqueada de 21h12 foi gravada por Juliano, fora do
 campus (coordenadas deslocadas, 4.4).
 
@@ -405,7 +406,7 @@ seção 2 já traz o levantamento do histórico até 21/10. Incluir os commits d
 Usamos o assistente Claude (Anthropic) em 21/10/2026 para gerar o pacote `av1` (seção 2),
 as ligações no serviço e nas telas, os testes da AV1, os scripts, este rascunho de
 relatório e os slides. O assistente compilou e executou na JVM, no ambiente dele (Kotlin
-2.0.21, JUnit 4.13.2), os testes de domínio, S2 e AV1 — 84 testes, zero falhas — e gerou o
+2.0.21, JUnit 4.13.2), os testes de domínio, S2 e AV1 — 86 testes, zero falhas — e gerou o
 Apêndice A com dados sintéticos. Ele não teve acesso ao aparelho; em 22/10/2026 leu os registros
 reais depois de copiados para o computador, rodou as análises de 4.4 a 4.8 e propôs o descarte das
 janelas com posição retida (D-24) e as linhas de GPS e de lote IMU da tabela 4.4.
