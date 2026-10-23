@@ -16,6 +16,9 @@ import kotlin.math.sqrt
  *   Se a acurácia estiver calibrada, ≈ 0,68.
  * @property rmsVelocidadeMps RMS da velocidade informada parado (deveria ser ~0).
  * @property rmsAcuraciaVelocidadeMps RMS da acurácia de velocidade declarada.
+ * @property fracaoRepetidos fração dos fixos com exatamente a mesma posição do fixo anterior. Alta,
+ *   indica que o receptor está retendo a posição com o aparelho parado: aí a dispersão medida
+ *   reflete a retenção, não o ruído do receptor.
  * @property pontos (leste, norte, r68) de cada fixo em relação à média, para o gráfico.
  */
 data class ResultadoEstatico(
@@ -31,6 +34,7 @@ data class ResultadoEstatico(
     val raio68MedioM: Double,
     val rmsVelocidadeMps: Double?,
     val rmsAcuraciaVelocidadeMps: Double?,
+    val fracaoRepetidos: Double,
     val pontos: List<DoubleArray>
 )
 
@@ -61,6 +65,8 @@ object AnaliseEstatica {
             raio68MedioM = f.map { it.acuraciaHorizontalM!! }.average(),
             rmsVelocidadeMps = if (vel.isEmpty()) null else Estatistica.rms(vel),
             rmsAcuraciaVelocidadeMps = if (accVel.isEmpty()) null else Estatistica.rms(accVel),
+            fracaoRepetidos = f.zipWithNext().count { (a, b) -> a.latitude == b.latitude && a.longitude == b.longitude }
+                .toDouble() / (f.size - 1),
             pontos = f.indices.map { doubleArrayOf(e[it], nn[it], f[it].acuraciaHorizontalM!!) }
         )
     }

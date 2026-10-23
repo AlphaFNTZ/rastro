@@ -11,6 +11,7 @@ import java.io.File
  *   docs/evidencias/dados/estatico   gnss_AAAAMMDD_HHMMSS.csv — aparelho parado, céu aberto
  *   docs/evidencias/dados/movimento  gnss_AAAAMMDD_HHMMSS.csv — caminhada
  *   docs/evidencias/dados/bloqueado  aquisicao_….csv e gnss_….csv da MESMA sessão, ≥ 30 min com a tela bloqueada
+ *   docs/evidencias/dados/bloqueado_antes_d23  a sessão anterior à correção D-23 (GPS cortado com a tela apagada)
  * Saída: arquivos .md, .json e dispersao_estatica.svg em docs/evidencias/resultados.
  *
  * Cada bloco é pulado (Assume) se os dados correspondentes ainda não existem, para
@@ -44,26 +45,38 @@ class EvidenciasAv1Test {
         appendLine()
     }
 
-    @Test fun `ensaio estatico - dispersao e razao de otimismo`() {
-        val arquivos = dados("estatico", "gnss_")
-        assumeTrue("sem registro estático", arquivos.isNotEmpty())
+    @Test fun `ensaio estatico - dispersao e razao de otimismo`() =
+        estatico("estatico", "", "Ensaio estático — dispersão e razão de otimismo")
+
+    @Test fun `ensaio estatico da sessao anterior a correcao D-23`() =
+        estatico("bloqueado_antes_d23", "_antes_d23", "Ensaio estático — sessão anterior à correção D-23")
+
+    private fun estatico(pasta: String, sufixo: String, titulo: String) {
+        val arquivos = dados(pasta, "gnss_")
+        assumeTrue("sem registro estático em $pasta", arquivos.isNotEmpty())
         val fixos = arquivos.flatMap { RegistroFixCsv.ler(it.readText()) }
         val r = AnaliseEstatica.analisar(fixos)
-        saida("estatico.md", cabecalho("Ensaio estático — dispersão e razão de otimismo", arquivos) + SaidaEvidencias.tabelaEstatico(r))
-        saida("dispersao_estatica.svg", SaidaEvidencias.svgDispersao(r, "Leituras estáticas GNSS"))
-        saida("estatico.json", SaidaEvidencias.json(mapOf("fixos" to r.n, "duracao_min" to r.duracaoS / 60, "r68_medio_m" to r.raio68MedioM,
+        saida("estatico$sufixo.md", cabecalho(titulo, arquivos) + SaidaEvidencias.tabelaEstatico(r))
+        saida("dispersao_estatica$sufixo.svg", SaidaEvidencias.svgDispersao(r, "Leituras estáticas GNSS"))
+        saida("estatico$sufixo.json", SaidaEvidencias.json(mapOf("fixos" to r.n, "duracao_min" to r.duracaoS / 60, "r68_medio_m" to r.raio68MedioM,
             "sigma_declarado_m" to r.sigmaDeclaradoM, "sigma_leste_m" to r.sigmaLesteMedidoM, "sigma_norte_m" to r.sigmaNorteMedidoM,
-            "razao_otimismo" to r.razaoOtimismo, "fracao_dentro_r68" to r.fracaoDentroRaio68)))
+            "razao_otimismo" to r.razaoOtimismo, "fracao_dentro_r68" to r.fracaoDentroRaio68, "fracao_repetidos" to r.fracaoRepetidos)))
     }
 
-    @Test fun `aquisicao com aparelho bloqueado`() {
-        val arquivos = dados("bloqueado", "aquisicao_")
-        assumeTrue("sem registro de aquisição", arquivos.isNotEmpty())
+    @Test fun `aquisicao com aparelho bloqueado`() = aquisicao("bloqueado", "aquisicao", "Aquisição periódica com o aparelho bloqueado")
+
+    /** Sessão gravada antes de declarar a localização em segundo plano (D-23): evidência do corte do GPS. */
+    @Test fun `aquisicao com aparelho bloqueado antes da correcao D-23`() =
+        aquisicao("bloqueado_antes_d23", "aquisicao_antes_d23", "Aquisição com o aparelho bloqueado — antes da correção D-23")
+
+    private fun aquisicao(pasta: String, nome: String, titulo: String) {
+        val arquivos = dados(pasta, "aquisicao_")
+        assumeTrue("sem registro de aquisição em $pasta", arquivos.isNotEmpty())
         val linhas = arquivos.flatMap { RegistroAquisicaoCsv.ler(it.readText()) }
-        val gnss = dados("bloqueado", "gnss_").flatMap { RegistroFixCsv.ler(it.readText()) }
+        val gnss = dados(pasta, "gnss_").flatMap { RegistroFixCsv.ler(it.readText()) }
         val r = AnaliseAquisicao.analisar(linhas, gnss)
-        saida("aquisicao.md", cabecalho("Aquisição periódica com o aparelho bloqueado", arquivos) + SaidaEvidencias.tabelaAquisicao(r))
-        saida("aquisicao.json", SaidaEvidencias.json(mapOf("bloqueado_min" to r.bloqueadoMin, "fixos" to r.fixosNoTrecho,
+        saida("$nome.md", cabecalho(titulo, arquivos) + SaidaEvidencias.tabelaAquisicao(r))
+        saida("$nome.json", SaidaEvidencias.json(mapOf("bloqueado_min" to r.bloqueadoMin, "fixos" to r.fixosNoTrecho,
             "fixos_gps" to r.fixosGpsNoTrecho, "imu_hz_medio" to r.imuHzMedio, "imu_hz_min" to r.imuHzMinimo,
             "imu_linhas_sem_lote" to r.janelasImuVazias, "imu_leituras" to r.imuLeiturasNoTrecho, "imu_descartadas" to r.descartadasNoTrecho,
             "cobertura_gps" to r.coberturaGps, "maior_intervalo_fixos_s" to r.maiorIntervaloFixosS,
@@ -93,6 +106,12 @@ class EvidenciasAv1Test {
             "Descartadas $retidas de ${todas.size} janelas com a posição retida pelo receptor (mesma posição e velocidade zero " +
             "em todos os fixos: A·y = 0 já antes de reconciliar). Restam ${janelas.size}.\n\n" +
             SaidaEvidencias.tabelaResiduos(residuos))
+        saida("residuos_resumo.md", cabecalho("Resíduo das restrições antes e depois da reconciliação — resumo", arquivos) +
+            "Janelas disjuntas de $TAMANHO_JANELA fixos GPS contínuos; descartadas $retidas de ${todas.size} com a posição retida.\n\n" +
+            SaidaEvidencias.resumoResiduos(residuos))
+        saida("demonstracao_resumo.md", cabecalho("Sem o detector, a reconciliação piora — resumo", arquivos) +
+            "Salto de 30 m injetado no fixo central de cada janela; referência = reconciliação da janela limpa.\n\n" +
+            SaidaEvidencias.resumoDemonstracao(demo))
         saida("demonstracao_detector.md", cabecalho("Sem o detector, a reconciliação piora", arquivos) +
             "Salto de 30 m injetado no fixo central de cada janela; referência = reconciliação da janela limpa.\n\n" +
             SaidaEvidencias.tabelaDemonstracao(demo))

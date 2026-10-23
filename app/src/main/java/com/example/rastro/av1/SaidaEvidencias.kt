@@ -39,6 +39,42 @@ object SaidaEvidencias {
         }
     }
 
+    /**
+     * Resumo do resíduo para o corpo do relatório: estatísticas de todas as janelas e as [mostrar]
+     * primeiras, na ordem do registro (sem escolher as melhores). A tabela completa vai no apêndice.
+     */
+    fun resumoResiduos(l: List<LinhaResiduo>, mostrar: Int = 3): String = buildString {
+        val antes = l.map { it.rmsAntesM }.sorted()
+        val mediana = if (antes.size % 2 == 1) antes[antes.size / 2] else (antes[antes.size / 2 - 1] + antes[antes.size / 2]) / 2
+        val gamaPorM = l.map { it.estatisticaGlobal / (2 * (it.fixos - 1)) }.average()
+        appendLine("| Grandeza (todas as janelas) | Valor |")
+        appendLine("|---|---|")
+        appendLine("| Janelas | ${l.size} |")
+        appendLine("| RMS r antes (m): mínimo / mediana / máximo | ${f(antes.first(), 3)} / ${f(mediana, 3)} / ${f(antes.last(), 3)} |")
+        appendLine("| RMS r depois (m): máximo | ${String.format(Locale.ROOT, "%.1e", l.maxOf { it.rmsDepoisM })} |")
+        appendLine("| γ/m médio (m = 2(N−1) graus de liberdade) | ${f(gamaPorM, 2)} |")
+        appendLine("| Janelas com γ acima do χ² de 95% | ${l.count { it.estatisticaGlobal > it.limiarGlobal }} |")
+        appendLine("| Janelas com fixo eliminado pelo detector | ${l.count { it.eliminados.isNotEmpty() }} |")
+        appendLine()
+        appendLine("As ${minOf(mostrar, l.size)} primeiras janelas, na ordem do registro (todas no Apêndice B):")
+        appendLine()
+        append(tabelaResiduos(l.take(mostrar)))
+    }
+
+    /** Resumo da demonstração sem/com detector: médias de todas as janelas e as [mostrar] primeiras. */
+    fun resumoDemonstracao(l: List<LinhaDemonstracao>, mostrar: Int = 3): String = buildString {
+        appendLine("| Grandeza (todas as janelas) | Valor |")
+        appendLine("|---|---|")
+        appendLine("| Janelas | ${l.size} |")
+        appendLine("| RMS dos vizinhos SEM detector (m), média | ${f(l.map { it.rmsSemDetectorM }.average(), 2)} |")
+        appendLine("| RMS dos vizinhos COM detector (m), média | ${f(l.map { it.rmsComDetectorM }.average(), 2)} |")
+        appendLine("| Salto detectado / localizado no fixo certo | ${l.count { it.detectou }} / ${l.count { it.localizouCorretamente }} de ${l.size} |")
+        appendLine()
+        appendLine("As ${minOf(mostrar, l.size)} primeiras janelas, na ordem do registro (todas no Apêndice B):")
+        appendLine()
+        append(tabelaDemonstracao(l.take(mostrar)))
+    }
+
     fun tabelaDemonstracao(l: List<LinhaDemonstracao>): String = buildString {
         appendLine("| Janela | Fixo com salto | Salto (m) | RMS vizinhos SEM detector (m) | RMS vizinhos COM detector (m) | Erro no fixo sem detector (m) | Detectou | Localizou |")
         appendLine("|---|---|---|---|---|---|---|---|")
@@ -69,6 +105,7 @@ object SaidaEvidencias {
         appendLine("| Fração dentro do próprio r68 (esperado 68%) | ${pct(r.fracaoDentroRaio68)} |")
         appendLine("| RMS da velocidade parado (m/s) | ${f(r.rmsVelocidadeMps, 3)} |")
         appendLine("| RMS da acurácia de velocidade declarada (m/s) | ${f(r.rmsAcuraciaVelocidadeMps, 3)} |")
+        appendLine("| Fixos que repetem exatamente a posição anterior | ${pct(r.fracaoRepetidos)} |")
     }
 
     fun tabelaAquisicao(r: ResultadoAquisicao): String = buildString {

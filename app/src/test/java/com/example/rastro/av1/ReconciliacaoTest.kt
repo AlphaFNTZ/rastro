@@ -214,6 +214,10 @@ class AnalisesTest {
         assertEquals(0.68, calibrado.fracaoDentroRaio68, 0.03)
         assertEquals(2.0, otimista.razaoOtimismo, 0.1)
         assertTrue(otimista.fracaoDentroRaio68 < 0.35)
+        assertEquals(0.0, calibrado.fracaoRepetidos, 1e-12)
+        // Receptor que retém a posição: todos os fixos repetem o primeiro.
+        val retido = Sintetico.estatico(50, 3).let { f -> f.map { it.copy(latitude = f[0].latitude, longitude = f[0].longitude) } }
+        assertEquals(1.0, AnaliseEstatica.analisar(retido).fracaoRepetidos, 1e-12)
         assertTrue(SaidaEvidencias.svgDispersao(calibrado, "teste").startsWith("<svg"))
     }
 
