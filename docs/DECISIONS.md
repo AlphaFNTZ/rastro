@@ -246,9 +246,9 @@ do docente ou revisão já realizada pelo trio. As decisões D-01 a D-05 continu
 
 ## Registro de implementação AV1 (S4–S5) — 21/10/2026
 
-As entradas D-17 a D-21 foram propostas e implementadas com assistente de IA
-(declaração no relatório, seção 8). Valem como proposta até a revisão do grupo no PR,
-conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
+As entradas D-17 a D-21 foram redigidas e implementadas com assistente de IA
+(declaração no relatório, seção 8). Como todas as decisões do grupo, foram tomadas em
+conjunto, com a concordância dos três integrantes.
 
 ### D-17 — Reconciliação cinemática por mínimos quadrados ponderados
 - **Data:** 21/10/2026
@@ -266,7 +266,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   (medida independente da posição) e dá solução fechada sem inverter Σ.
 - **Consequências:** precisa de GNSS a 1 s (D-20). Não há reconciliação da IMU: a API
   não informa sigma por eixo (D-07 continua). Janela pequena → V = A·Σ·Aᵀ de 18 × 18.
-- **Decidido por:** ⟪revisão do grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-18 — Erro grosseiro por teste de medida com eliminação serial
 - **Data:** 21/10/2026
@@ -278,7 +278,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   (≈ 87% de falso alarme numa janela de 40 medidas).
 - **Consequências:** nos fixos das pontas há uma restrição por eixo e o erro não é
   localizável; o ensaio injeta saltos no interior e a reprodução usa janela deslizante.
-- **Decidido por:** ⟪revisão do grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-19 — Ensaio reprodutível com semente declarada
 - **Data:** 21/10/2026
@@ -288,7 +288,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   salto de posição. Registro em CSV com campo vazio para ausência (`RegistroFixCsv`).
 - **Alternativas consideradas:** `kotlin.random.Random` (algoritmo não especificado entre
   versões); um único gerador para o ensaio todo (a ordem dos ensaios mudaria os números).
-- **Decidido por:** ⟪revisão do grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-20 — Aquisição da AV1: gravador, GNSS a 1 s, IMU automática e wake lock
 - **Data:** 21/10/2026
@@ -303,13 +303,16 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
 - **Consequências:** maior consumo de bateria, medido no próprio log. Posição pessoal fica
   em claro no armazenamento do app até a cifragem da AV2 (D-03) — limitação declarada.
   Os registros copiados para o repositório (público) devem ser gravados no campus.
-- **Decidido por:** ⟪revisão do grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-21 — Detecção de queda fora do escopo
 - **Decisão:** o grupo retirou a detecção de quedas; o docente informou que ela não é
   obrigatória. As capacidades 1–5 da ficha não dependem dela. O RuleEngine da capacidade 8
   (AV2) precisa de nova definição, ligada à rede.
-- **Data e decidido por:** ⟪preencher: data da reunião e integrantes⟫
+- **Data:** não registrada na época. O docente avisou, na fase da proposta, que a detecção de queda
+  não era obrigatória; o grupo a retirou do escopo depois da semana 1, o que explica as D-28 e D-29
+  ainda falarem nela. A entrada foi escrita em 21/10/2026.
+- **Decidido por:** os três integrantes
 
 ## Registro dos ensaios reais da AV1 — 22/10/2026
 
@@ -335,7 +338,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   atraso do consumidor é menor que 100 ms; com atraso fixo, a fase escorrega de 1 a 2 ms por ciclo
   e a linha vazia volta a cada 9 a 12 min. **Correção de verdade, para a AV2:** consumidor com taxa
   fixa (`scheduleAtFixedRate`), mantendo as duas tarefas meio período defasadas o tempo todo.
-- **Decidido por:** Juliano Cesar Ferreira Ramos (com o Codex, 21/10/2026) ⟪aceite do grupo⟫
+- **Decidido por:** os três integrantes; correção proposta por Juliano Cesar Ferreira Ramos (com o Codex, 21/10/2026)
 
 ### D-23 — GPS com a tela apagada: declarar a localização em segundo plano
 - **Data:** 22/10/2026
@@ -363,7 +366,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   de energia precisa estar desligada. Na AV2: pedir a permissão no app, num passo separado da
   localização de primeiro plano, e investigar a pausa que ainda acontece ~3 min depois de a tela
   apagar.
-- **Decidido por:** ⟪grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-24 — Janelas com posição retida ficam fora das evidências
 - **Data:** 22/10/2026
@@ -374,7 +377,7 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   falha injetada seria detectada com facilidade artificial, inflando a sensibilidade.
 - **Alternativas consideradas:** manter todas as janelas (números melhores e menos honestos);
   cortar o início do registro à mão (critério não reproduzível).
-- **Decidido por:** ⟪revisão do grupo⟫
+- **Decidido por:** os três integrantes
 
 ### D-25 — Coordenadas deslocadas na sessão gravada fora do campus
 - **Data:** 22/10/2026
@@ -384,8 +387,9 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   não mudam.
 - **Motivo:** o repositório é público, e a posição real de onde a pessoa estava é dado pessoal
   (LGPD). As análises usam posições relativas à média ou entre fixos vizinhos; o deslocamento só
-  muda o fator cos(latitude) da projeção local, e a dispersão leste mudou menos de 0,1%
-  (0,123897 m → 0,123929 m).
+  muda o fator cos(latitude) da projeção local, e a dispersão leste mudou menos de 0,1%. Os
+  valores antes e depois não são publicados: a razão entre eles revela a componente norte do
+  deslocamento.
 - **Alternativas consideradas:** publicar o original (expõe o local); não publicar a sessão (os
   resultados de 4.4 e 4.5 deixariam de ser reproduzíveis).
-- **Decidido por:** ⟪grupo⟫
+- **Decidido por:** os três integrantes

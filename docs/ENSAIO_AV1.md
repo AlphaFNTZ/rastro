@@ -94,7 +94,8 @@ erro grosseiro detectado.
    semente = `20261020` → **Reproduzir**. O bloco 3 mostra, a cada fixo, o resíduo RMS antes
    e depois, γ contra o limiar χ², e "ERRO GROSSEIRO no fixo N ← o salto injetado".
 5. **Falha de propósito (nível Excelente):** repita com um salto abaixo do mínimo detectável
-   de `sensibilidade.md` (por exemplo `5`) e mostre que ele passa sem ser detectado. Esse é o
+   de `sensibilidade.md` (por exemplo `2`: na tabela, 2 m é detectado em 6% das janelas e 5 m
+   em 92%) e mostre que o fixo do salto não aparece como erro grosseiro. Esse é o
    comportamento no limite, e a tabela explica por quê.
 6. **Comparar com e sem detector:** mostra, por janela, quanto os fixos vizinhos se afastam
    da referência sem o detector e com ele.

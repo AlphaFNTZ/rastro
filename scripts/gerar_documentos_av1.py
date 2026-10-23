@@ -36,6 +36,18 @@ VERMELHO = "#E03E3E"
 ESCURO = "#0D0F14"
 CLARO = "#F4F5F9"
 
+# Quem apresenta cada bloco da Apresentação I. Vazio: o rodapé mostra só o nome do bloco.
+APRESENTADORES = {
+    "Fundamentação": "",
+    "MVP ao vivo": "",
+    "Resultados": "",
+}
+
+
+def rodape(bloco, extra=""):
+    partes = [bloco, APRESENTADORES.get(bloco, ""), extra]
+    return " · ".join(x for x in partes if x)
+
 
 def pendente(texto):
     return f"⟪Pendente: {texto}⟫"
@@ -216,6 +228,30 @@ def gerar_slides():
 
     est, aq, rec = ler_json("estatico.json"), ler_json("aquisicao.json"), ler_json("reconciliacao.json")
     aq_antes = ler_json("aquisicao_antes_d23.json")
+
+    def resumo_testes():
+        alvo = RES / "testes_unidade.md"
+        if not alvo.exists():
+            return None
+        texto = alvo.read_text(encoding="utf-8")
+        linhas = re.findall(r"^\|\s*(com\.[^|]+)\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|", texto, flags=re.M)
+        commit = re.search(r"Commit: `([0-9a-f]+)`", texto)
+        return (sum(int(l[1]) for l in linhas), len(linhas), sum(int(l[2]) + int(l[3]) for l in linhas),
+                commit.group(1) if commit else None)
+
+    def resumo_corrida():
+        alvo = RES / "corrida_10_execucoes.md"
+        if not alvo.exists():
+            return None
+        res = re.findall(r"^\|\s*\d+\s*\|.*\|\s*(PASSOU|FALHOU)\s*\|\s*$", alvo.read_text(encoding="utf-8"), flags=re.M)
+        return (res.count("PASSOU"), len(res)) if res else None
+
+    def potencia10(v):
+        m, e = f"{v:.0e}".split("e")
+        sup = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
+        return f"{m}·10{str(int(e)).translate(sup)}"
+
+    tst, cor = resumo_testes(), resumo_corrida()
     P = "⟪após a coleta⟫"
 
     # 1 — título
@@ -230,7 +266,7 @@ def gerar_slides():
     caixa(sl, cm(1.5), cm(12.6), cm(30), cm(3), ["Juliano Cesar Ferreira Ramos", "Andre Bueno Ocanha", "João Paulo Silva"], 18, "#FFFFFF")
 
     # 2 — problema e grandeza
-    sl = base("O que a camada 1 mede", "Fundamentação · ⟪quem apresenta⟫", 2)
+    sl = base("O que a camada 1 mede", rodape("Fundamentação"), 2)
     caixa(sl, cm(1.2), cm(3), cm(15), cm(12), [
         [("Domínio: ", True), ("rede mesh entre Androids em áreas sem cobertura. Para a AV1, o nó precisa ", False),
          ("sentir, corrigir e detectar", True), (" sem enviar nada para fora.", False)],
@@ -252,7 +288,7 @@ def gerar_slides():
     ], 18, fundo=CLARO)
 
     # 3 — estruturas
-    sl = base("Estruturas de capacidade fixa", "Fundamentação · ⟪quem apresenta⟫", 3)
+    sl = base("Estruturas de capacidade fixa", rodape("Fundamentação"), 3)
     caixa(sl, cm(1.2), cm(3), cm(31), cm(6), [
         [("Trajeto", True), (" (imutável): tamanho O(1) · média e recorte temporal O(n), n ≤ capacidade · inserção copia a janela O(n)", False)],
         [("CircularImuBuffer", True), (" (anel de 500 ≈ 10 s): inserção O(1) · descarta o mais antigo e conta · snapshot/drenar O(n) devolvem CÓPIA", False)],
@@ -263,7 +299,7 @@ def gerar_slides():
     ], 21)
 
     # 4 — incerteza
-    sl = base("Incerteza vem do sensor", "Fundamentação · ⟪quem apresenta⟫", 4)
+    sl = base("Incerteza vem do sensor", rodape("Fundamentação"), 4)
     caixa(sl, cm(1.2), cm(3), cm(16), cm(13), [
         [("Posição: ", True), ("o Android dá um raio r68 (68%), não σ.", False)],
         "P(|e| ≤ r68) = 1 − exp(−r68²/2σ²) = 0,68",
@@ -293,7 +329,7 @@ def gerar_slides():
         ], 15, fundo=CLARO)
 
     # 5 — reconciliação
-    sl = base("Reconciliação sob a restrição cinemática", "Fundamentação · ⟪quem apresenta⟫", 5)
+    sl = base("Reconciliação sob a restrição cinemática", rodape("Fundamentação"), 5)
     caixa(sl, cm(1.2), cm(3), cm(31), cm(14), [
         [("pₐ(k+1) − pₐ(k) − ½(vₐ(k) + vₐ(k+1))·Δtₖ = 0", True), ("    a ∈ {leste, norte}", False)],
         "p = posição medida (m) · v = componente da velocidade (m/s) · Δt = intervalo entre fixos (s, relógio monotônico)",
@@ -307,7 +343,7 @@ def gerar_slides():
     ], 20)
 
     # 6 — erro grosseiro
-    sl = base("Erro grosseiro: critério quantitativo", "Fundamentação · ⟪quem apresenta⟫", 6)
+    sl = base("Erro grosseiro: critério quantitativo", rodape("Fundamentação"), 6)
     caixa(sl, cm(1.2), cm(3), cm(19), cm(14), [
         [("zⱼ = |aⱼ| / √Wⱼⱼ", True), ("   a = y − ŷ (ajuste) · W = Σ·Aᵀ·V⁻¹·A·Σ", False)],
         "Sem erro grosseiro, zⱼ ~ N(0,1).",
@@ -326,7 +362,7 @@ def gerar_slides():
     ], 17, fundo=CLARO)
 
     # 7 — concorrência e aquisição
-    sl = base("Região crítica e aquisição periódica", "Fundamentação · ⟪quem apresenta⟫", 7)
+    sl = base("Região crítica e aquisição periódica", rodape("Fundamentação"), 7)
     caixa(sl, cm(1.2), cm(3), cm(16.5), cm(14), [
         [("rastro-imu-50hz", True), (" produtor, 20 ms", False)],
         [("rastro-consumidor-imu", True), (" drena a cada 1 s", False)],
@@ -348,7 +384,7 @@ def gerar_slides():
     ], 16, fundo=CLARO)
 
     # 8 — ensaio reprodutível
-    sl = base("Ensaio reprodutível e injeção de falhas", "Fundamentação · ⟪quem apresenta⟫", 8)
+    sl = base("Ensaio reprodutível e injeção de falhas", rodape("Fundamentação"), 8)
     caixa(sl, cm(1.2), cm(3), cm(31), cm(14), [
         [("Semente fixa 20261020", True), (" — java.util.Random tem algoritmo especificado: mesmo resultado em qualquer JVM/Android.", False)],
         "Um gerador por (semente, rótulo): a ordem dos ensaios não muda os números.",
@@ -363,7 +399,7 @@ def gerar_slides():
     ], 20)
 
     # 9 — MVP
-    sl = base("MVP ao vivo — o caminho do dado", "MVP ao vivo · ⟪quem apresenta⟫ · 9 min", 9)
+    sl = base("MVP ao vivo — o caminho do dado", rodape("MVP ao vivo", "9 min"), 9)
     passos = [
         ("1", "Aparelho bloqueado", "notificação na tela de bloqueio: fixos GNSS, IMU e tempo subindo (ativado 30+ min antes; \"Permitir o tempo todo\", economia de energia desligada)"),
         ("2", "Ensaio AV1", "toque longo no status → bloco de aquisição ao vivo"),
@@ -378,10 +414,12 @@ def gerar_slides():
         caixa(sl, cm(3.2), y, cm(29), cm(1.9), [[(t + "  ", True), (d, False)]], 19)
 
     # 10 — resultados
-    sl = base("Resultados com condição de medição", "Resultados · ⟪quem apresenta⟫ · 5 min", 10)
+    sl = base("Resultados com condição de medição", rodape("Resultados", "5 min"), 10)
     linhas = [
-        ("Testes de unidade", "gradlew test", "ver testes_unidade.md" if (RES / "testes_unidade.md").exists() else P),
-        ("Teste de corrida", "10 execuções independentes", "ver corrida_10_execucoes.md" if (RES / "corrida_10_execucoes.md").exists() else P),
+        ("Testes de unidade", f"gradlew test no {tst[3]}" if tst and tst[3] else "gradlew test",
+         f"{tst[0]} testes em {tst[1]} classes · {tst[2]} falhas" if tst else P),
+        ("Teste de corrida", f"{cor[1]} execuções independentes" if cor else "10 execuções independentes",
+         f"{cor[0]} de {cor[1]} passaram" if cor else P),
         ("Aquisição bloqueada", "maior trecho contínuo", f"{f(aq['bloqueado_min'], 1, ' min')} · IMU {f(aq['imu_hz_medio'], 1, ' Hz')} · {aq['imu_descartadas']} leituras perdidas" if aq and 'imu_descartadas' in aq else P),
         ("GPS com a tela apagada", "mesmo trecho; antes da D-23 entre parênteses",
          f"{f(aq['cobertura_gps'] * 100, 0, '%')} do tempo" + (f" ({f(aq_antes['cobertura_gps'] * 100, 0, '%')})" if aq_antes else "") +
@@ -389,7 +427,7 @@ def gerar_slides():
         ("Consumo", "bateria durante o trecho", f(aq['consumo_pct_h'], 1, ' %/h') if aq and aq.get('consumo_pct_h') is not None else P),
         ("Razão de otimismo", f"parado; {f(est['fracao_repetidos'] * 100, 0, '%')} dos fixos retidos" if est and est.get('fracao_repetidos') is not None else "aparelho parado",
          f"{f(est['razao_otimismo'], 2)} (não mede o ruído)" if est else P),
-        ("Resíduo RMS", f"{rec['janelas']} janelas reais da caminhada" if rec else "≥ 3 janelas reais", f"{f(rec['rms_antes_medio_m'], 2, ' m')} → {rec['rms_depois_max_m']:.0e} m" if rec else P),
+        ("Resíduo RMS (média)", f"{rec['janelas']} janelas reais da caminhada" if rec else "≥ 3 janelas reais", f"{f(rec['rms_antes_medio_m'], 2, ' m')} → {potencia10(rec['rms_depois_max_m'])} m" if rec else P),
         ("Salto mínimo detectável", "≥ 90% de detecção", f(rec['salto_minimo_90pct_m'], 0, ' m') if rec and rec.get('salto_minimo_90pct_m') is not None else P),
     ]
     tab = sl.shapes.add_table(len(linhas) + 1, 3, cm(1.2), cm(3), cm(31.5), cm(12)).table
@@ -409,7 +447,7 @@ def gerar_slides():
     caixa(sl, cm(1.2), cm(15.4), cm(31), cm(1.5), "Aparelho: Samsung SM-S926B · coletas: 22/10/2026, campus da UFLA (sessão bloqueada de 21h12 fora do campus, coordenadas deslocadas) · scripts\\av1_evidencias.ps1 · semente 20261020", 12, "#6B6F80")
 
     # 11 — limitações
-    sl = base("Limitações e próximo passo", "Resultados · ⟪quem apresenta⟫", 11)
+    sl = base("Limitações e próximo passo", rodape("Resultados"), 11)
     caixa(sl, cm(1.2), cm(3), cm(15.5), cm(14), [
         [("O que não sabemos ainda", True)],
         "Sem verdade de campo: a referência é a janela limpa reconciliada.",

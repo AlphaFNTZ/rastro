@@ -1,12 +1,11 @@
 ---
 title: "Rastro — Relatório parcial da AV1"
 subtitle: "GAT108 Automação Avançada · Projeto Integrador · Capacidades 1 a 5"
-date: "⟪data da entrega⟫"
+date: "23/10/2026"
 ---
 
 <!--
-Fonte do relatório. Os trechos entre ⟪ ⟫ são do grupo e precisam ser preenchidos antes
-da entrega. Os blocos "incluir: arquivo" são substituídos pelo script
+Fonte do relatório. Os blocos "incluir: arquivo" são substituídos pelo script
 scripts/gerar_documentos_av1.py pelas tabelas que o EvidenciasAv1Test gera a partir
 dos registros reais; enquanto o arquivo não existe, aparece um aviso de pendência.
 -->
@@ -17,15 +16,29 @@ dos registros reais; enquanto o arquivo não existe, aparece um aviso de pendên
 |---|---|
 | Grupo | Rastro (trio) |
 | Integrantes | Juliano Cesar Ferreira Ramos · Andre Bueno Ocanha · João Paulo Silva |
-| Papel nesta fase | ⟪um parágrafo por integrante: o que cada um fez nas semanas 1 a 5⟫ |
 | Repositório | https://github.com/AlphaFNTZ/rastro |
-| Commit entregue | ⟪hash do commit enviado no e-mail⟫ |
+| Commit entregue | informado no corpo do e-mail de entrega (um commit não pode conter o próprio hash) |
 | Domínio | Comunicação descentralizada em áreas sem cobertura (rede mesh entre Androids) |
 | Grandeza física da camada 1 | Posição e velocidade GNSS com a acurácia informada pelo receptor; aceleração em 3 eixos |
 
+**Papel de cada integrante nas semanas 1 a 5.** As decisões foram tomadas pelos três, em conjunto.
+
+- **João Paulo Silva** — domínio e contratos da semana 1 (`Posicao`, `IMURead`, `Trajeto`, exceções e
+  testes), ajustes da proposta e registro de decisões da semana 1; nas semanas 4 e 5, a integração da
+  AV1: reconciliação, detector de erro grosseiro, ensaio reprodutível, gravador, tela Ensaio AV1,
+  evidências, relatório e slides, com o assistente de IA (seção 8).
+- **Juliano Cesar Ferreira Ramos** — semanas 2 e 3: incerteza do GNSS, buffer circular e teste de
+  corrida, a malha (Wi-Fi Direct, Nearby, roteamento, serviço em primeiro plano), as melhorias 01 a 03
+  e as telas; na AV1, compilou, testou e instalou o aplicativo no aparelho, propôs a correção D-22 e
+  fez as coletas.
+- **Andre Bueno Ocanha** — nas semanas 1 a 3, participou das decisões registradas (D-01 a D-05 e
+  D-26 a D-32), sem commits; nas semanas 4 e 5, trabalhou com João Paulo Silva em todos os commits da
+  AV1, ajudando a escrever e conferindo, e por isso é coautor deles; revisor da pull request desta
+  entrega.
+
 # 2. O que foi implementado
 
-Levantado no histórico do Git (todos os ramos) em 21/10/2026.
+Levantado no histórico do Git (todos os ramos) em 23/10/2026.
 
 **João Paulo Silva** — semana 1, commit `240077b` (13/09): `Posicao`, `IMURead`, `Trajeto`
 e `DomainExceptions` (exceções seladas `InvalidSensorReadException` e
@@ -37,8 +50,9 @@ e `DomainExceptions` (exceções seladas `InvalidSensorReadException` e
 de dez rodadas; semana 3, `09cb7ad`/`6713ba7` (24/09): `NearbyTransport`, `MeshRouter`,
 `RastroService` em primeiro plano; melhorias 01 a 03 e telas (`51ef36d` a `3ee9e20`, 24 a 30/09).
 
-**Andre Bueno Ocanha** — coautor (`Co-authored-by`) dos commits da AV1 de 21/10/2026 listados
-abaixo; ⟪descrever o que ele fez nas semanas 1 a 5⟫.
+**Andre Bueno Ocanha** — semanas 1 a 3: decisões D-01 a D-05 e D-26 a D-32, sem commits. Semanas 4
+e 5: trabalhou pessoalmente com João Paulo Silva em todos os commits da AV1, ajudando a escrever e
+conferindo; é coautor (`Co-authored-by`) dos 20 commits de 21 e 22/10/2026 (lista em 6.3).
 
 **Implementação das semanas 4 e 5 (esta entrega)** — pacote `com.example.rastro.av1`:
 `Matriz`, `Estatistica`, `RegistroFix`/`RegistroFixCsv`, `RegistroAquisicao`/`RegistroAquisicaoCsv`,
@@ -46,11 +60,11 @@ abaixo; ⟪descrever o que ele fez nas semanas 1 a 5⟫.
 `InjetorFalhas`, `AnaliseEstatica`, `AnaliseAquisicao`, `TabelaResiduos`,
 `DemonstracaoDetector`, `EnsaioSensibilidade`, `SaidaEvidencias`, `ReprodutorRegistro`,
 `GravadorAquisicao` e `EnsaioActivity`; ligações em `RastroService`, `MainActivity`,
-`ConfiguracaoActivity`, `LocalizacaoSos` e no manifesto; 9 classes de teste em
+`ConfiguracaoActivity`, `LocalizacaoSos` e no manifesto; 11 classes de teste em
 `app/src/test/.../av1`; scripts `av1_evidencias.ps1` e `av1_copiar_registros.ps1`.
 Código gerado com assistente de IA (seção 8). Comitado por João Paulo Silva em 21/10/2026, com
 Andre Bueno Ocanha como coautor: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `7815b3f`, `216a99b`,
-`b09c873`, `b9c70d3` e `9ffba37`. Juliano Cesar Ferreira Ramos compilou o aplicativo, rodou a
+`b09c873` e `b9c70d3`; `9ffba37` (acentuação do `GravadorAquisicao`) não tem coautor. Juliano Cesar Ferreira Ramos compilou o aplicativo, rodou a
 suíte completa e instalou no aparelho em 21/10/2026 (`cb0468d`, que traz também a correção de
 fase do gravador, D-22). As evidências 4.2 e 4.3 foram geradas de novo por João Paulo Silva com
 `scripts/av1_evidencias.ps1` no commit `710ef50`, com a árvore limpa. As coletas físicas foram feitas pelo grupo em
@@ -364,8 +378,63 @@ semente (capacidade 5): é o que foi entregue. A detecção de quedas saiu do es
 
 # 6. Autoria por integrante
 
-⟪Repetir aqui, por integrante, as classes e métodos escritos e os hashes dos commits — a
-seção 2 já traz o levantamento do histórico até 21/10. Incluir os commits desta entrega.⟫
+Levantado com `git log --all` em 23/10/2026, pela autoria e pelas linhas `Co-authored-by`. Os
+commits das semanas 4 e 5 foram feitos na conta de João Paulo Silva, com coautoria; o código dessa
+fase foi gerado com assistente de IA (seção 8).
+
+## 6.1 João Paulo Silva
+
+- **Semana 1.** `240077b` (13/09): `Posicao`, `IMURead` (`magnitude`), `Trajeto` (`vazio`,
+  `comNovoPonto`, `velocidadeMediaMps`, `recorteTemporal`, `pontosOrdenados`) e `DomainExceptions`,
+  com `PosicaoTest`, `IMUReadTest` e `TrajetoTest`; `7039bfe` (13/09), proposta; `550d623` (15/09,
+  na `main`), decisões da semana 1 (D-26 a D-32).
+- **Semanas 4 e 5**, pacote `av1`: `Reconciliador` (`reconciliar`, `restricoes`, `medidas`),
+  `ProjecaoLocal`, `ModeloIncerteza`, `Matriz`, `Estatistica`, `DetectorErroGrosseiro` (`analisar`),
+  `Janelas` (`disjuntas`, `retida`, `filtrar`), `InjetorFalhas` (`ruido`, `perda`, `salto`),
+  `RegistroFix`/`RegistroFixCsv`, `RegistroAquisicao`/`RegistroAquisicaoCsv`, `AnaliseEstatica`,
+  `AnaliseAquisicao`, `TabelaResiduos`, `DemonstracaoDetector`, `EnsaioSensibilidade`
+  (`saltoMinimoDetectavel`), `ReprodutorRegistro` (`passo`), `SaidaEvidencias`, `GravadorAquisicao`
+  (`iniciar`, `registrarFix`, `registrarImu`, `parar`) e `EnsaioActivity`; 11 classes de teste; a
+  localização em segundo plano no manifesto (D-23).
+- **Commits.** 21/10: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `7815b3f`, `216a99b`, `b09c873`,
+  `b9c70d3` e `9ffba37`. 22/10: `b648185`, `32e955e`, `61946bc`, `271b8c2`, `3a8781b`, `a97e44e`,
+  `be662d1`, `c78600a`, `be2de33`, `710ef50`, `678d58c` e `353bc47`. Nesta entrega, `6addf61` (merge
+  da `main`, D-26 a D-32) e o commit de preenchimento final.
+
+## 6.2 Juliano Cesar Ferreira Ramos
+
+- **Base do projeto.** `1c6a1f5` e a documentação inicial (30/08).
+- **Semana 2.** `1613b5b` e `dc7ff92` (22/09): `CovarianciaGnss` e `IncertezaImu`, `CircularImuBuffer`
+  (`adicionar`, `snapshot`, `drenar`) com `CircularImuBufferTest` e o teste de corrida
+  `CircularImuBufferConcurrencyTest`, `CovarianciaTest`, `ImuSensorSource`, `LocationMapper`,
+  `Mensagem`, `CanalTcp`, `Transporte` e `WifiDirectTransport`.
+- **Semana 3.** `09cb7ad` e `6713ba7` (24/09): `NearbyTransport`, `MeshRouter` (`originar`,
+  `receber`), `IdentidadeNo` e `RastroService`, o serviço em primeiro plano.
+- **Melhorias e telas** (24 a 30/09, `51ef36d` a `3ee9e20`): mapa offline (`MapaRastro`,
+  `MapasOffline`, `PerfilAlcance`), SOS (`LocalizacaoSos`, `HistoricoSessao`), conversa e custódia
+  (`ChatProtocol`, `ChatStore`, `CustodyEngine`, `ForwardEngine`), `QrScanActivity` e as telas.
+- **AV1.** `cb0468d` (21/10): compilação, suíte completa, instalação no aparelho, primeiras dez
+  execuções do teste de corrida e a correção de fase do `GravadorAquisicao` (D-22). Coautor de
+  `61946bc`, `b648185` e `be662d1` (22/10) e dos dois commits desta entrega; gravou a sessão bloqueada
+  de 21h12.
+
+## 6.3 Andre Bueno Ocanha
+
+- **Semanas 1 a 3.** Consta em "Decidido por" das decisões D-01 a D-05 e D-26 a D-32; não tem commits
+  nessas semanas.
+- **Semanas 4 e 5.** Trabalhou pessoalmente com João Paulo Silva em todos os commits da AV1, ajudando a
+  escrever e conferindo. Por isso é coautor (`Co-authored-by`) de 20 commits:
+  - 21/10: reconciliação cinemática e detector de erro grosseiro (`ac1c93c`); injeção de falhas com
+    semente e reprodução (`3418956`); testes da AV1 (`d2178d1`); gravador de aquisição com wake lock,
+    IMU e GNSS a cada 1 s (`2c49a56`); tela Ensaio AV1 (`7815b3f`); scripts de evidências (`216a99b`);
+    decisões D-17 a D-21 (`b09c873`); primeira versão dos slides e do relatório (`b9c70d3`);
+  - 22/10: restauração da correção D-22 (`b648185`) e correção D-23 (`32e955e`); registros reais da
+    coleta no campus (`61946bc`) e da sessão de 21h12 (`be662d1`); descarte das janelas com posição
+    retida (`271b8c2`); análises e evidências (`3a8781b`, `c78600a`, `be2de33`, `678d58c`); versões
+    finais do relatório e dos slides (`a97e44e`, `710ef50`, `353bc47`).
+
+  É coautor também dos dois commits desta entrega.
+- **Revisão.** Revisor da pull request de `origin/joao` para a `main`.
 
 # 7. Limitações
 
@@ -395,29 +464,47 @@ seção 2 já traz o levantamento do histórico até 21/10. Incluir os commits d
   bloqueadas (4.4); com cargas iniciais diferentes, os dois valores não são diretamente comparáveis.
 - **Dado pessoal em claro.** O registro fica sem cifra no armazenamento do app até a AV2
   (`AesGcmVault`, D-03); os registros publicados foram gravados no campus.
-- **Processo.** ⟪Assumir com honestidade: a `main` ficou na semana 1 e não houve PR revisado
-  nas semanas 2 a 5; não há integração contínua configurada.⟫
+- **Processo.** A `main` ficou no commit da semana 1 (`550d623`, 15/09). As semanas 2 a 5 foram
+  feitas nos ramos `develop`, `origin/juliano` e `origin/joao`, sem a pull request revisada que o
+  roteiro exige (seção 3.1). A primeira, de `origin/joao` para a `main`, é a desta entrega, aberta
+  depois do prazo para revisão de Andre Bueno Ocanha. Não há integração contínua: os testes rodam com
+  `gradlew test` e `scripts\av1_evidencias.ps1`.
 - **Compilação Android.** As partes Android desta entrega não foram compiladas no ambiente
   do assistente (sem SDK); foram compiladas e testadas por Juliano Cesar Ferreira Ramos em
   21/10/2026 com `gradlew` e instaladas no aparelho (4.2).
 
 # 8. Declaração de uso de IA
 
-Usamos o assistente Claude (Anthropic) em 21/10/2026 para gerar o pacote `av1` (seção 2),
-as ligações no serviço e nas telas, os testes da AV1, os scripts, este rascunho de
-relatório e os slides. O assistente compilou e executou na JVM, no ambiente dele (Kotlin
-2.0.21, JUnit 4.13.2), os testes de domínio, S2 e AV1 — 86 testes, zero falhas — e gerou o
-Apêndice A com dados sintéticos. Ele não teve acesso ao aparelho; em 22/10/2026 leu os registros
-reais depois de copiados para o computador, rodou as análises de 4.4 a 4.8 e propôs o descarte das
-janelas com posição retida (D-24) e as linhas de GPS e de lote IMU da tabela 4.4.
+**Semanas 1 a 3.** João Paulo Silva usou o Claude (Anthropic) na semana 1: classes de domínio
+`Posicao`, `IMURead`, `Trajeto` e `DomainExceptions`, com seus testes (`240077b`, 13/09); ajustes na
+proposta (`7039bfe`); registro das decisões da semana 1 (`550d623`, 15/09). Juliano Cesar Ferreira
+Ramos usou o Codex (OpenAI) nas semanas 2 e 3: requisitos e documentação da S2 (`1613b5b`, `dc7ff92`,
+22/09) e da S3 (`09cb7ad`, `6713ba7`, 24/09); melhorias 01 a 03 e telas do aplicativo (`51ef36d` a
+`3ee9e20`, 24 a 30/09).
 
-Juliano Cesar Ferreira Ramos usou o Codex (OpenAI) em 21/10/2026 para compilar, rodar a suíte,
-instalar e testar no aparelho e propor a correção de fase do `GravadorAquisicao` (D-22).
+**Semanas 4 e 5.** Usamos o Claude em 21/10/2026 para gerar o pacote `av1` (seção 2), as ligações no
+serviço e nas telas, os testes da AV1, os scripts, o rascunho deste relatório e os slides. O
+assistente compilou e executou na JVM, no ambiente dele (Kotlin 2.0.21, JUnit 4.13.2), os testes de
+domínio, S2 e AV1 — 86 testes, zero falhas — e gerou o Apêndice A com dados sintéticos. Ele não teve
+acesso ao aparelho; em 22/10/2026 leu os registros reais depois de copiados para o computador, rodou
+as análises de 4.4 a 4.8 e propôs o descarte das janelas com posição retida (D-24) e as linhas de GPS
+e de lote IMU da tabela 4.4. Juliano Cesar Ferreira Ramos usou o Codex em 21/10/2026 para compilar,
+rodar a suíte, instalar e testar no aparelho e propor a correção de fase do `GravadorAquisicao`
+(D-22). Em 23/10/2026, o Claude preencheu este relatório, o registro de decisões e o e-mail a partir
+das respostas do grupo, trouxe as decisões da `main` (D-26 a D-32) e gerou de novo o PDF e os slides.
 
-O que cada integrante verificou por conta própria: ⟪preencher por integrante — por exemplo:
-leu e explicou a fórmula de reconciliação; conferiu o sinal da matriz A; rodou `gradlew test`;
-fez a coleta de 30 min; conferiu os números do relatório contra os arquivos gerados⟫.
-⟪Declarar também o uso de IA nas semanas 1 a 3, se houve.⟫
+**O que cada integrante verificou por conta própria.**
+
+- **João Paulo Silva:** rodou `scripts\av1_evidencias.ps1` com a árvore limpa no `710ef50` — 161
+  testes, 0 falhas, e 10 de 10 execuções do teste de corrida sem falha (`678d58c`); conferiu no
+  aparelho a reconciliação e o erro grosseiro na tela Ensaio AV1 (o salto de 30 m foi detectado com
+  z = 39,7).
+- **Juliano Cesar Ferreira Ramos:** compilou com `gradlew`, rodou a suíte e o teste de corrida e
+  instalou no aparelho (`cb0468d`); testou o chat de mensagens de um aparelho para outro; gravou a
+  sessão bloqueada de 21h12, já com "Permitir o tempo todo" (`be662d1`).
+- **Andre Bueno Ocanha:** conferiu, junto com João Paulo Silva, a reconciliação e o detector de erro
+  grosseiro (`ac1c93c`, `d2178d1`) e a aquisição de GNSS e IMU com a tela bloqueada, com a correção
+  D-23 (`2c49a56`, `32e955e`).
 
 # 9. Leitura em camadas
 
