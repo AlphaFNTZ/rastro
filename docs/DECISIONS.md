@@ -95,3 +95,4 @@
 - **Motivo:** `Trajeto` tem comportamento (janela deslizante, recorte temporal) e identidade de estrutura — não é um valor comparável por igualdade de conteúdo como `Posicao`/`IMURead`. Os métodos de brinde de uma `data class` (`equals`/`hashCode`/`copy` por conteúdo) não fazem sentido semântico aqui e poderiam mascarar bugs: dois `Trajeto` com os mesmos pontos não são necessariamente "a mesma coisa" no sentido que importa para o sistema.
 - **Consequências:** Nenhuma perda funcional; é decisão de modelagem a manter se novas estruturas com comportamento (como o futuro `CircularTrackBuffer` da Semana 4) forem criadas.
 - **Decidido por:** Juliano Cesar, Andre Bueno, João Paulo
+
