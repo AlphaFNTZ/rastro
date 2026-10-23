@@ -261,9 +261,14 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   consumidor, que é o que o log precisa observar); o registro com atraso fixo também (a fase
   escorregaria do mesmo jeito).
 - **Consequências:** o jitter entre as duas tarefas continua existindo e é medido na AV2
-  (capacidade 6). O commit `9ffba37` desfez a correção por engano ao restaurar a acentuação; os
-  registros de 22/10 mostram o padrão sem a correção (4 linhas sem lote em 2170). A correção
-  foi restaurada em seguida.
+  (capacidade 6). O commit `9ffba37` desfez a correção por engano ao restaurar a acentuação; a
+  sessão de 15h20 de 22/10 foi gravada sem ela (4 linhas sem lote em 2170). A correção foi
+  restaurada em `b648185`.
+- **Resultado medido (22/10, sessão de 21h12, com a correção):** o registro esperou os 100 ms em
+  trechos inteiros, e mesmo assim houve 4 linhas sem lote em 2280. A espera só segura enquanto o
+  atraso do consumidor é menor que 100 ms; com atraso fixo, a fase escorrega de 1 a 2 ms por ciclo
+  e a linha vazia volta a cada 9 a 12 min. **Correção de verdade, para a AV2:** consumidor com taxa
+  fixa (`scheduleAtFixedRate`), mantendo as duas tarefas meio período defasadas o tempo todo.
 - **Decidido por:** Juliano Cesar Ferreira Ramos (com o Codex, 21/10/2026) ⟪aceite do grupo⟫
 
 ### D-23 — GPS com a tela apagada: declarar a localização em segundo plano
@@ -274,11 +279,13 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   A otimização de bateria do Rastro já estava em "Irrestrito" e o serviço é do tipo `location`;
   das três verificações da seção 12 do roteiro da disciplina, faltava a permissão de localização
   em segundo plano: o app não a declarava, e o Android nem oferecia "Permitir o tempo todo".
-- **Decisão:** declarar `ACCESS_BACKGROUND_LOCATION` no manifesto. Teste em 22/10/2026 num
-  Samsung SM-S938B (Android 16) com "Permitir o tempo todo" concedido à mão: com a economia de
-  energia ligada o GPS ainda parou; desligada, o contador de fixos GNSS seguiu subindo com a tela
-  apagada (conferido pelo contador, sem registro copiado). A sessão de 22/10 continua como foi
-  gravada, com o corte, e é a evidência do problema.
+- **Decisão:** declarar `ACCESS_BACKGROUND_LOCATION` no manifesto (`32e955e`). Com a permissão
+  concedida à mão, a sessão de 21h12 de 22/10 (36,3 min bloqueada) teve fixo `gps` em 87% do
+  trecho, contra 62% antes. Ainda houve uma pausa de 271,6 s, que começou ~180 s depois de a tela
+  apagar e terminou sozinha, com a tela apagada; depois o GPS seguiu contínuo por ~29 min. A causa
+  dessa pausa não foi identificada. Num teste curto no SM-S938B, a economia de energia ligada
+  cortou o GPS mesmo com a permissão concedida. A sessão de 15h20 foi mantida em
+  `dados/bloqueado_antes_d23` como evidência do problema.
 - **Alternativas consideradas:** pedir a permissão dentro do app agora (fluxo novo em duas
   etapas e outra sessão de 35 min, sem tempo antes da entrega; fica para a AV2); trocar a fonte
   por `FusedLocationProvider` (depende do Google Play Services, e o projeto não usa serviços de
@@ -288,7 +295,8 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
   fixos, e a reconciliação só usa fixos `gps`. Com a correção, a permissão ainda precisa ser
   concedida à mão (Configurações › Aplicativos › Rastro › Permissões › Localização) e a economia
   de energia precisa estar desligada. Na AV2: pedir a permissão no app, num passo separado da
-  localização de primeiro plano, e regravar a sessão de 30 min.
+  localização de primeiro plano, e investigar a pausa que ainda acontece ~3 min depois de a tela
+  apagar.
 - **Decidido por:** ⟪grupo⟫
 
 ### D-24 — Janelas com posição retida ficam fora das evidências
@@ -301,3 +309,17 @@ conforme D-04; quem revisar deve registrar aqui o aceite ou a mudança.
 - **Alternativas consideradas:** manter todas as janelas (números melhores e menos honestos);
   cortar o início do registro à mão (critério não reproduzível).
 - **Decidido por:** ⟪revisão do grupo⟫
+
+### D-25 — Coordenadas deslocadas na sessão gravada fora do campus
+- **Data:** 22/10/2026
+- **Decisão:** a sessão `20261022_211230` foi gravada fora do campus. Antes de publicar, a
+  latitude e a longitude de todos os fixos (gps e rede) foram somadas a um mesmo deslocamento
+  constante, que não está no repositório; o arquivo original fica com o grupo. As demais colunas
+  não mudam.
+- **Motivo:** o repositório é público, e a posição real de onde a pessoa estava é dado pessoal
+  (LGPD). As análises usam posições relativas à média ou entre fixos vizinhos; o deslocamento só
+  muda o fator cos(latitude) da projeção local, e a dispersão leste mudou menos de 0,1%
+  (0,123897 m → 0,123929 m).
+- **Alternativas consideradas:** publicar o original (expõe o local); não publicar a sessão (os
+  resultados de 4.4 e 4.5 deixariam de ser reproduzíveis).
+- **Decidido por:** ⟪grupo⟫

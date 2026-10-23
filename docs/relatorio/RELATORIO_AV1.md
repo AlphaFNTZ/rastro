@@ -53,7 +53,8 @@ Andre Bueno Ocanha como coautor: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `78
 `b09c873`, `b9c70d3` e `9ffba37`. Juliano Cesar Ferreira Ramos compilou o aplicativo, rodou a
 suíte completa e instalou no aparelho em 21/10/2026 (`cb0468d`, que traz também a correção de
 fase do gravador, D-22, e as evidências 4.2 e 4.3). As coletas físicas foram feitas pelo grupo em
-22/10/2026 no campus da UFLA.
+22/10/2026 no campus da UFLA; a sessão bloqueada de 21h12 foi gravada por Juliano, fora do
+campus (coordenadas deslocadas, 4.4).
 
 # 3. Fundamentação
 
@@ -169,6 +170,15 @@ linha do registro fica sem lote (imu_janela = 0) e a seguinte recebe o lote atra
 leitura se perde. A correção (D-22) começa o registro meio período depois do consumidor e, se a
 janela estiver vazia, espera até 100 ms **fora** do monitor pela entrega real.
 
+A sessão de 21h12 mostrou que essa correção não basta. Nela, o registro esperou os 100 ms em
+trechos inteiros (são linhas atrasadas exatamente 100 ms), e mesmo assim houve 4 linhas sem lote
+em 2280, a mesma taxa da sessão sem a correção. A espera só segura enquanto o atraso do consumidor
+em relação ao registro é menor que 100 ms. Com atraso fixo, a fase continua escorregando de 1 a
+2 ms por ciclo, passa dos 100 ms, e a linha vazia volta, uma vez a cada 9 a 12 min. A correção de
+verdade é rodar o consumidor com taxa fixa (`scheduleAtFixedRate`), o que mantém as duas tarefas
+meio período defasadas o tempo todo. Ela fica para a AV2, junto com a medição do jitter
+(capacidade 6).
+
 O teste de corrida (10 rodadas, produtor, consumidor e observador simultâneos, 10 000
 leituras num buffer de 64) verifica ordem, ausência de duplicata e
 consumidas + descartadas = produzidas. Ele **prova** que, nessas execuções, nenhuma
@@ -209,11 +219,15 @@ Comandos: `scripts\av1_evidencias.ps1` (gera 4.2 a 4.8) e o roteiro de `docs/ENS
 
 Capturas do aparelho usado nas coletas (Samsung SM-S926B), feitas em 22/10/2026 no campus da UFLA.
 
+::: lado
+
 <!-- figura: telas/01_tela_principal.jpg | Figura 1 — Tela principal 19 s depois de ativar: a segunda linha do status mostra fixos GNSS, leituras IMU com a taxa e o tempo de gravação; o ponto no mapa é a posição atual. -->
 
-<!-- figura: telas/02_notificacao_bloqueio.jpg | Figura 2 — Tela de bloqueio aos 16 min 18 s da sessão de 4.4 (recortada: o fundo da tela de bloqueio foi removido). A IMU segue a 50 Hz; o contador parado em 238 fixos GNSS é o corte do GPS descrito em 4.4, que começou cerca de 3 min depois de a tela apagar. -->
+<!-- figura: telas/02_notificacao_bloqueio.jpg | Figura 2 — Tela de bloqueio aos 16 min 18 s da sessão de 15h20, anterior à correção D-23 (recortada: o fundo da tela de bloqueio foi removido). A IMU segue a 50 Hz; o contador parado em 238 fixos GNSS é o corte do GPS descrito em 4.4, que começou cerca de 3 min depois de a tela apagar. -->
 
 <!-- figura: telas/03_ensaio_erro_grosseiro.jpg | Figura 3 — Tela Ensaio AV1 ao fim da reprodução da caminhada (908 fixos, semente 20261020, salto de 30 m no fixo 454), em duas partes da mesma lista de eventos. O salto foi detectado com z = 39,7; as outras 17 eliminações não foram injetadas. -->
+
+:::
 
 A reprodução da Figura 3 usa janela deslizante: cada fixo passa por até 10 janelas, contra uma
 só nas janelas disjuntas de 4.6, e por isso aparecem mais alarmes do que na tabela. As 17
@@ -227,7 +241,7 @@ da velocidade; sem verdade de campo, o método aponta a inconsistência, mas nã
 
 ## 4.2 Saída do comando de teste
 
-<!-- incluir: resultados/testes_unidade.md -->
+<!-- incluir: resultados/testes_unidade.md | resumo -->
 
 ## 4.3 Teste de corrida — dez execuções
 
@@ -235,52 +249,79 @@ da velocidade; sem verdade de campo, o método aponta a inconsistência, mas nã
 
 ## 4.4 Aquisição com o aparelho bloqueado
 
+Duas sessões de cerca de 36 min com o aparelho parado e a tela bloqueada: a de 15h20, gravada
+antes da correção D-23, e a de 21h12, gravada depois dela. A tabela principal é a da sessão nova;
+a da sessão anterior vem logo abaixo, para comparação. A sessão de 21h12 foi gravada fora do
+campus. Por isso, antes de publicar, as coordenadas foram deslocadas por um vetor constante, que
+não está no repositório. As análises usam só posições relativas, e o deslocamento muda a dispersão
+em menos de 0,1%.
+
 <!-- incluir: resultados/aquisicao.md -->
 
-**Leitura.** A tarefa periódica não parou: 36,2 min contínuos com a tela bloqueada, nenhuma
-linha do registro com intervalo acima de 1,02 s, acelerômetro a 50 Hz e nenhuma leitura descartada.
-As 4 linhas sem lote IMU são o efeito de fase de 3.5 (as leituras foram no lote seguinte); o
-padrão é o esperado sem a correção D-22, que o commit `9ffba37` desfez por engano e que foi
-restaurada em seguida.
+A tabela completa da sessão anterior está no Apêndice B.
 
-**O que não ficou contínuo foi o GPS.** Cerca de 3 min depois que a tela apaga, o aparelho
-(Samsung SM-S926B) para de entregar fixos `gps`, e eles voltam no instante em que a tela acende.
-Aconteceu três vezes, sempre com o mesmo atraso de ~180 s; a mais longa durou 734,5 s. O
-processo continuou vivo (IMU e registro seguiram) e o provedor de rede continuou entregando
-posição a cada 20 s, com r68 mediano de 100 m. Para a malha, isso quer dizer: **o nó nunca
-ficou mais de 20,1 s sem posição para anunciar, mas com a tela apagada há mais de 3 min a
-posição anunciada num SOS tem raio de ~100 m em vez de ~1 m.** 
+| | Antes da D-23 (15h20) | Depois da D-23 (21h12) |
+|---|---|---|
+| Trecho contínuo com a tela bloqueada | 36,2 min | 36,3 min |
+| IMU: taxa média e leituras descartadas | 50,0 Hz, 0 | 50,1 Hz, 0 |
+| Parte do trecho com fixo `gps` seguido | 62% | 87% |
+| Maior intervalo entre fixos `gps` | 734,5 s (só voltou quando a tela acendeu) | 271,6 s (voltou sozinho, com a tela apagada) |
+| Maior intervalo sem nenhuma posição (qualquer provedor) | 20,1 s | 20,1 s |
+| Consumo de bateria | 8,3 %/h | 5,0 %/h |
+
+**Leitura.** Nas duas sessões a tarefa periódica não parou: nenhuma linha do registro com
+intervalo acima de 1,1 s, acelerômetro a 50 Hz e nenhuma leitura descartada. As 4 linhas sem lote
+IMU de cada sessão são o efeito de fase de 3.5; as leituras foram no lote seguinte.
+
+**GPS antes da correção.** Cerca de 3 min depois que a tela apagava, o aparelho parava de entregar
+fixos `gps`, e eles só voltavam no instante em que a tela acendia. Aconteceu três vezes, sempre
+com o mesmo atraso de ~180 s; a mais longa durou 734,5 s. O processo continuou vivo (IMU e
+registro seguiram), e o provedor de rede continuou entregando posição a cada 20 s, com r68
+mediano de 100 m. Para a malha, isso quer dizer: **o nó nunca ficou mais de 20,1 s sem posição
+para anunciar, mas, com a tela apagada há mais de 3 min, a posição anunciada num SOS tinha raio
+de ~100 m em vez de ~1 m.**
 
 **Causa e correção (D-23).** O roteiro da disciplina (seção 12, "A aquisição para quando bloqueio
-a tela") manda conferir três coisas. Duas estavam atendidas nesta sessão: o serviço é do tipo
-`location` e a bateria do Rastro estava em "Irrestrito". Faltava a terceira: o app não declarava a
-permissão de localização em segundo plano, e por isso o Android nem oferecia a opção "Permitir o
-tempo todo". Declaramos `ACCESS_BACKGROUND_LOCATION` no manifesto e repetimos o teste num segundo
-aparelho (Samsung SM-S938B, Android 16), com a permissão concedida à mão. Com a economia de
-energia ligada, o GPS ainda parou. Com ela desligada, o contador de fixos GNSS da notificação
-continuou subindo com a tela apagada. Esse teste foi conferido só pelo contador: o registro não foi
-copiado, então não há números dele. A sessão de 30 min com a correção e o pedido da permissão
-dentro do app, num passo separado da localização de primeiro plano, ficam para a AV2.
+a tela") manda conferir três coisas. Duas estavam atendidas: o serviço é do tipo `location` e a
+bateria do Rastro estava em "Irrestrito". Faltava a terceira: o app não declarava a permissão de
+localização em segundo plano, e por isso o Android nem oferecia a opção "Permitir o tempo todo".
+Com `ACCESS_BACKGROUND_LOCATION` declarada e concedida, a sessão de 21h12 teve fixo `gps` em 87%
+do trecho bloqueado. Houve uma única pausa, de 271,6 s, que também começou ~180 s depois de a
+tela apagar. Desta vez ela terminou sozinha, com a tela ainda apagada, e depois o GPS seguiu
+contínuo por cerca de 29 min, até o fim, sem nenhuma lacuna acima de 3,4 s. Não sabemos por que
+essa primeira pausa aconteceu. Num teste curto em outro aparelho (Samsung SM-S938B, conferido só
+pelo contador da notificação), a economia de energia ligada também cortou o GPS, mesmo com a
+permissão concedida. Pedir a permissão dentro do app, num passo separado da localização de
+primeiro plano, fica para a AV2; por enquanto ela é concedida à mão nas configurações.
 
 ## 4.5 Dispersão das leituras estáticas e razão de otimismo
 
 <!-- incluir: resultados/estatico.md -->
 
-<!-- figura: resultados/dispersao_estatica.svg | Figura 4 — Posições GNSS com o aparelho parado, em relação à média. Tracejado: r68 médio declarado; contínuo: raio que contém 68% dos fixos medidos. -->
+::: lado
 
-**Leitura.** O registro estático é a mesma sessão de 4.4. A razão 3,32 junta dois comportamentos
-diferentes do receptor. Nos primeiros 4 min, ele declarava r68 mediano de 1,0 m e estava em média
-a 12,9 m da posição em que se estabilizou depois (86% desses fixos fora do próprio r68): o erro
-lento do GNSS não está na acurácia informada. Depois do corte de 4.4, a posição praticamente não
-muda: no registro inteiro, 94% dos fixos repetem exatamente a posição anterior, porque o receptor
-retém a posição com o aparelho parado. O valor da razão depende de quanto tempo de cada trecho entra na
-média; a conclusão que vale é qualitativa e importa para a reconciliação: **a acurácia declarada
-não cobre o erro de longo período**. A janela de reconciliação (9 s) não é afetada por ele, porque o
-erro lento quase não muda entre fixos vizinhos (4.6).
+<!-- figura: resultados/dispersao_estatica.svg | Figura 4 — Sessão de 21h12 (tabela acima): posições com o aparelho parado, em relação à média. Tracejado: r68 médio declarado; contínuo: raio com 68% dos fixos. -->
+
+<!-- figura: resultados/dispersao_estatica_antes_d23.svg | Figura 5 — Sessão de 15h20 (tabela no Apêndice B): o rastro de pontos à esquerda é a convergência dos primeiros 4 min, com o receptor declarando r68 de ~1 m. -->
+
+:::
+
+**Leitura.** As duas sessões dão razões opostas, e nenhuma das duas mede o ruído do receptor.
+Na sessão de 21h12 a razão foi 0,56, com 88% dos fixos dentro do próprio r68, o que parece um
+receptor pessimista. Mas 99% dos fixos repetem exatamente a posição anterior: com o aparelho
+parado, o receptor retém a posição, e a dispersão medida é a da retenção. Na sessão de 15h20 a
+razão foi 3,32, com só 4% dentro do r68. Ali, nos primeiros 4 min, o receptor declarava r68
+mediano de 1,0 m e estava em média a 12,9 m da posição em que se estabilizou depois (86% desses
+fixos fora do próprio r68); em seguida ele também reteve a posição (94% de fixos repetidos).
+
+A conclusão que vale é qualitativa. Com um celular parado, o ensaio estático mede a retenção de
+posição e, quando há, o viés da convergência inicial. **A acurácia declarada não cobre esse viés
+lento.** Para a reconciliação, o que importa é o erro entre fixos vizinhos, e ele foi medido em
+movimento, em 4.6.
 
 ## 4.6 Resíduo antes e depois da reconciliação
 
-<!-- incluir: resultados/residuos.md -->
+<!-- incluir: resultados/residuos_resumo.md -->
 
 **Leitura.** Caminhada de 15 min no campus, com a tela ligada, sem lacuna de GPS: 85 janelas
 úteis. O resíduo RMS das restrições cai de 0,10–1,28 m (mediana 0,21 m) para menos de 10⁻¹⁴ m em
@@ -295,7 +336,7 @@ três fixos envolvidos, a eliminação serial retirou os fixos certos.
 
 ## 4.7 Sem o detector de erro grosseiro, a reconciliação piora
 
-<!-- incluir: resultados/demonstracao_detector.md -->
+<!-- incluir: resultados/demonstracao_resumo.md -->
 
 **Leitura.** Com um salto de 30 m no fixo central, a reconciliação sem o detector afasta os
 fixos vizinhos, que estavam corretos, em média 2,94 m da referência; com o detector, 0,07 m. O
@@ -336,17 +377,21 @@ seção 2 já traz o levantamento do histórico até 21/10. Incluir os commits d
 - **IMU sem reconciliação.** A API padrão não informa σ por eixo do acelerômetro (D-07);
   a IMU entra só na aquisição periódica.
 - **Período não garantido.** Android não é tempo real; Cᵢ e escalonabilidade ficam para a AV2.
-- **GPS com a tela apagada.** Na sessão gravada, o GPS parou ~3 min depois que a tela apagou e a
-  posição caiu para a de rede (r68 ~100 m) até a tela acender (4.4). A causa era a falta da
-  permissão de localização em segundo plano, já declarada no manifesto (D-23). A correção foi
-  conferida num teste curto, sem registro copiado; a sessão de 30 min com ela é da AV2. A
-  permissão ainda é concedida à mão nas configurações, e a economia de energia do aparelho
-  precisa estar desligada.
-- **Posição retida.** Parado, o receptor repete a posição; o ensaio estático mistura um viés
-  inicial de ~13 m com um trecho sem variação, e a razão de otimismo depende dessa mistura (4.5).
-- **Um aparelho só.** Todas as medições são de um Samsung SM-S926B, numa sessão parada e uma
-  caminhada no campus; outro receptor pode se comportar de outro jeito.
-- **Energia.** Wake lock, GNSS a 1 s e IMU contínua consomem 8,3 %/h com a tela bloqueada (4.4).
+- **GPS com a tela apagada.** Sem a permissão de localização em segundo plano, o GPS parava ~3 min
+  depois que a tela apagava. Com ela (D-23), a cobertura foi de 87%, mas ainda houve uma pausa de
+  271,6 s, sem causa identificada, que terminou sozinha (4.4). A permissão ainda é concedida à
+  mão nas configurações, e a economia de energia do aparelho precisa estar desligada.
+- **Linhas sem lote IMU.** A espera de 100 ms da D-22 não eliminou as linhas vazias (4 em 2280).
+  A correção de verdade, o consumidor com taxa fixa, fica para a AV2 (3.5). Nenhuma leitura se
+  perde.
+- **Posição retida.** Parado, o receptor repete a posição (94% e 99% dos fixos nas duas sessões):
+  o ensaio estático não mede o ruído do receptor, e a razão de otimismo saiu 3,32 numa sessão e
+  0,56 na outra (4.5).
+- **Um aparelho só.** As sessões gravadas são de um Samsung SM-S926B: duas paradas e uma
+  caminhada. O teste no SM-S938B foi curto e sem registro; outro receptor pode se comportar de
+  outro jeito.
+- **Energia.** Wake lock, GNSS a 1 s e IMU contínua consumiram 5,0 e 8,3 %/h nas duas sessões
+  bloqueadas (4.4); com cargas iniciais diferentes, os dois valores não são diretamente comparáveis.
 - **Dado pessoal em claro.** O registro fica sem cifra no armazenamento do app até a AV2
   (`AesGcmVault`, D-03); os registros publicados foram gravados no campus.
 - **Processo.** ⟪Assumir com honestidade: a `main` ficou na semana 1 e não houve PR revisado
@@ -380,3 +425,23 @@ Exigida somente na AV2.
 # Apêndice A — Verificação da implementação com dados sintéticos
 
 <!-- incluir: validacao_sintetica.md -->
+
+# Apêndice B — Tabelas completas
+
+## B.1 Testes de unidade, por classe
+
+<!-- incluir: resultados/testes_unidade.md -->
+
+## B.2 Resíduo em todas as janelas da caminhada
+
+<!-- incluir: resultados/residuos.md -->
+
+## B.3 Demonstração sem e com o detector, em todas as janelas
+
+<!-- incluir: resultados/demonstracao_detector.md -->
+
+## B.4 Sessão bloqueada anterior à correção D-23
+
+<!-- incluir: resultados/aquisicao_antes_d23.md -->
+
+<!-- incluir: resultados/estatico_antes_d23.md -->

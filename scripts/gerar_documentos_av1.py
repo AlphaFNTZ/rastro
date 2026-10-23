@@ -43,7 +43,8 @@ def pendente(texto):
 
 def resolver_inclusoes(md: str) -> str:
     def incluir(m):
-        rel = m.group(1).strip()
+        partes = [p.strip() for p in m.group(1).split("|")]
+        rel, modo = partes[0], (partes[1] if len(partes) > 1 else "")
         alvo = EVID / rel
         if not alvo.exists():
             return pendente(f"gerar `{rel}` com `scripts\\av1_evidencias.ps1` depois da coleta (docs/ENSAIO_AV1.md)")
@@ -64,6 +65,13 @@ def resolver_inclusoes(md: str) -> str:
         if rel.endswith("testes_unidade.md"):
             texto = re.sub(r"```text.*?```", "_Saída completa do Gradle em `docs/evidencias/resultados/testes_unidade.md`._",
                            texto, flags=re.S)
+            if modo == "resumo":
+                # No corpo do relatório: só o cabeçalho e os totais; a tabela por classe vai no apêndice.
+                linhas = re.findall(r"^\|\s*(com\.[^|]+)\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|", texto, flags=re.M)
+                tot = [sum(int(l[i]) for l in linhas) for i in range(1, 5)]
+                cab = [l for l in texto.splitlines() if l.startswith("- ")]
+                texto = "\n".join(cab) + (f"\n\n**Total: {tot[0]} testes em {len(linhas)} classes, {tot[1]} falhas, {tot[2]} erros, "
+                                          f"{tot[3]} ignorados.** A tabela por classe está no Apêndice B.")
         return texto
 
     def figura(m):
@@ -105,6 +113,9 @@ blockquote { margin: 4pt 0 8pt 0; padding: 4pt 8pt; border-left: 3px solid #5E4A
 blockquote p { margin: 0; }
 figure { margin: 6pt 0 10pt 0; text-align: center; break-inside: avoid; }
 figure img { max-width: 72%; max-height: 125mm; }
+.lado { display: flex; gap: 10pt; align-items: flex-start; break-inside: avoid; }
+.lado figure { flex: 1; margin: 4pt 0; }
+.lado figure img { max-width: 100%; max-height: 100mm; }
 figcaption { font-size: 8.5pt; color: #444; margin-top: 3pt; }
 .formula { text-align: center; font-weight: 600; font-size: 10.5pt; margin: 4pt 0 8pt 0; }
 .formula p { text-align: center; margin: 0; }
@@ -204,6 +215,7 @@ def gerar_slides():
         return "—" if v is None else f"{v:.{casas}f}{sufixo}".replace(".", ",")
 
     est, aq, rec = ler_json("estatico.json"), ler_json("aquisicao.json"), ler_json("reconciliacao.json")
+    aq_antes = ler_json("aquisicao_antes_d23.json")
     P = "⟪após a coleta⟫"
 
     # 1 — título
@@ -371,9 +383,12 @@ def gerar_slides():
         ("Testes de unidade", "gradlew test", "ver testes_unidade.md" if (RES / "testes_unidade.md").exists() else P),
         ("Teste de corrida", "10 execuções independentes", "ver corrida_10_execucoes.md" if (RES / "corrida_10_execucoes.md").exists() else P),
         ("Aquisição bloqueada", "maior trecho contínuo", f"{f(aq['bloqueado_min'], 1, ' min')} · IMU {f(aq['imu_hz_medio'], 1, ' Hz')} · {aq['imu_descartadas']} leituras perdidas" if aq and 'imu_descartadas' in aq else P),
-        ("Posição com a tela apagada", "mesmo trecho", f"GPS em {f(aq['cobertura_gps'] * 100, 0, '%')} do tempo · sem GPS, rede a cada ≤ {f(aq['maior_intervalo_qualquer_fixo_s'], 0, ' s')} (r68 {f(aq['r68_rede_mediano_m'], 0, ' m')})" if aq and aq.get('cobertura_gps') is not None else P),
+        ("GPS com a tela apagada", "mesmo trecho; antes da D-23 entre parênteses",
+         f"{f(aq['cobertura_gps'] * 100, 0, '%')} do tempo" + (f" ({f(aq_antes['cobertura_gps'] * 100, 0, '%')})" if aq_antes else "") +
+         f" · sem GPS, rede a cada ≤ {f(aq['maior_intervalo_qualquer_fixo_s'], 0, ' s')}" if aq and aq.get('cobertura_gps') is not None else P),
         ("Consumo", "bateria durante o trecho", f(aq['consumo_pct_h'], 1, ' %/h') if aq and aq.get('consumo_pct_h') is not None else P),
-        ("Razão de otimismo", "aparelho parado, mesma sessão", f(est['razao_otimismo'], 2) if est else P),
+        ("Razão de otimismo", f"parado; {f(est['fracao_repetidos'] * 100, 0, '%')} dos fixos retidos" if est and est.get('fracao_repetidos') is not None else "aparelho parado",
+         f"{f(est['razao_otimismo'], 2)} (não mede o ruído)" if est else P),
         ("Resíduo RMS", f"{rec['janelas']} janelas reais da caminhada" if rec else "≥ 3 janelas reais", f"{f(rec['rms_antes_medio_m'], 2, ' m')} → {rec['rms_depois_max_m']:.0e} m" if rec else P),
         ("Salto mínimo detectável", "≥ 90% de detecção", f(rec['salto_minimo_90pct_m'], 0, ' m') if rec and rec.get('salto_minimo_90pct_m') is not None else P),
     ]
@@ -391,7 +406,7 @@ def gerar_slides():
                 for r in par.runs:
                     r.font.size = Pt(15); r.font.name = FONTE_NOME; r.font.bold = (i == 0)
                     r.font.color.rgb = rgb("#FFFFFF" if i == 0 else ESCURO)
-    caixa(sl, cm(1.2), cm(15.4), cm(31), cm(1.5), "Aparelho: Samsung SM-S926B · local: campus da UFLA · coletas: 22/10/2026 · comando: scripts\\av1_evidencias.ps1 · semente 20261020", 12, "#6B6F80")
+    caixa(sl, cm(1.2), cm(15.4), cm(31), cm(1.5), "Aparelho: Samsung SM-S926B · coletas: 22/10/2026, campus da UFLA (sessão bloqueada de 21h12 fora do campus, coordenadas deslocadas) · scripts\\av1_evidencias.ps1 · semente 20261020", 12, "#6B6F80")
 
     # 11 — limitações
     sl = base("Limitações e próximo passo", "Resultados · ⟪quem apresenta⟫", 11)
@@ -399,13 +414,14 @@ def gerar_slides():
         [("O que não sabemos ainda", True)],
         "Sem verdade de campo: a referência é a janela limpa reconciliada.",
         "Erro de GNSS é correlacionado no tempo: γ não é exatamente χ².",
-        "Sessão gravada: GPS parou ~3 min após a tela apagar (faltava a localização em segundo plano; corrigido e conferido em teste curto).",
-        "Parado, o receptor retém a posição: a razão de otimismo mistura viés inicial e posição congelada.",
+        (f"Sem localização em segundo plano o GPS parava ~3 min após apagar a tela; com ela, {f(aq['cobertura_gps'] * 100, 0, '%')} do tempo "
+         f"e uma pausa de {f(aq['maior_intervalo_fixos_s'] / 60, 1, ' min')} sem causa conhecida.") if aq and aq.get('cobertura_gps') is not None else P,
+        "Parado, o receptor retém a posição: o ensaio estático não mede o ruído.",
         "Registro em claro até a cifragem da AV2.",
     ], 17)
     caixa(sl, cm(17.5), cm(3), cm(15.3), cm(14), [
         [("AV2", True)],
-        "Pedir a localização em segundo plano dentro do app e regravar os 30 min com GPS",
+        "Pedir a localização em segundo plano no app; consumidor IMU com taxa fixa (D-22)",
         "Cᵢ medido e escalonabilidade das 4 tarefas periódicas",
         "Aprendizado online dos encontros de rede",
         "Agente com RuleEngine e modelo removível",
