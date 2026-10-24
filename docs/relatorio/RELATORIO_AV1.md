@@ -29,12 +29,11 @@ dos registros reais; enquanto o arquivo não existe, aparece um aviso de pendên
   evidências, relatório e slides, com o assistente de IA (seção 8).
 - **Juliano Cesar Ferreira Ramos** — semanas 2 e 3: incerteza do GNSS, buffer circular e teste de
   corrida, a malha (Wi-Fi Direct, Nearby, roteamento, serviço em primeiro plano), as melhorias 01 a 03
-  e as telas; na AV1, compilou, testou e instalou o aplicativo no aparelho, propôs a correção D-22 e
-  fez as coletas.
+  e as telas; na AV1, compilou, testou e instalou o aplicativo no aparelho, propôs a correção D-22,
+  fez as coletas e revisou, aprovou e mesclou a pull request #1, desta entrega.
 - **Andre Bueno Ocanha** — nas semanas 1 a 3, participou das decisões registradas (D-01 a D-05 e
   D-26 a D-32), sem commits; nas semanas 4 e 5, trabalhou com João Paulo Silva em todos os commits da
-  AV1, ajudando a escrever e conferindo, e por isso é coautor deles; revisor da pull request desta
-  entrega.
+  AV1, ajudando a escrever e conferindo, e por isso é coautor deles.
 
 # 2. O que foi implementado
 
@@ -398,8 +397,9 @@ fase foi gerado com assistente de IA (seção 8).
   localização em segundo plano no manifesto (D-23).
 - **Commits.** 21/10: `ac1c93c`, `3418956`, `d2178d1`, `2c49a56`, `7815b3f`, `216a99b`, `b09c873`,
   `b9c70d3` e `9ffba37`. 22/10: `b648185`, `32e955e`, `61946bc`, `271b8c2`, `3a8781b`, `a97e44e`,
-  `be662d1`, `c78600a`, `be2de33`, `710ef50`, `678d58c` e `353bc47`. Nesta entrega, `6addf61` (merge
-  da `main`, D-26 a D-32) e o commit de preenchimento final.
+  `be662d1`, `c78600a`, `be2de33`, `710ef50`, `678d58c` e `353bc47`. Nesta entrega: `6addf61` e
+  `ef190d6` (merges da `main`), `c0847a6` (preenchimento do relatório, das decisões e dos slides) e a
+  correção da revisão da pull request #1.
 
 ## 6.2 Juliano Cesar Ferreira Ramos
 
@@ -415,8 +415,9 @@ fase foi gerado com assistente de IA (seção 8).
   (`ChatProtocol`, `ChatStore`, `CustodyEngine`, `ForwardEngine`), `QrScanActivity` e as telas.
 - **AV1.** `cb0468d` (21/10): compilação, suíte completa, instalação no aparelho, primeiras dez
   execuções do teste de corrida e a correção de fase do `GravadorAquisicao` (D-22). Coautor de
-  `61946bc`, `b648185` e `be662d1` (22/10) e dos dois commits desta entrega; gravou a sessão bloqueada
-  de 21h12.
+  `61946bc`, `b648185` e `be662d1` (22/10) e de `6addf61` e `c0847a6`, desta entrega; gravou a sessão
+  bloqueada de 21h12.
+- **Revisão.** Revisou, aprovou e mesclou a pull request #1 (`origin/joao` → `main`) em 23/10/2026.
 
 ## 6.3 Andre Bueno Ocanha
 
@@ -433,8 +434,7 @@ fase foi gerado com assistente de IA (seção 8).
     retida (`271b8c2`); análises e evidências (`3a8781b`, `c78600a`, `be2de33`, `678d58c`); versões
     finais do relatório e dos slides (`a97e44e`, `710ef50`, `353bc47`).
 
-  É coautor também dos dois commits desta entrega.
-- **Revisão.** Revisor da pull request de `origin/joao` para a `main`.
+  É coautor também de `6addf61` e `c0847a6`, desta entrega.
 
 # 7. Limitações
 
@@ -466,8 +466,9 @@ fase foi gerado com assistente de IA (seção 8).
   (`AesGcmVault`, D-03); os registros publicados foram gravados no campus.
 - **Processo.** A `main` ficou no commit da semana 1 (`550d623`, 15/09). As semanas 2 a 5 foram
   feitas nos ramos `develop`, `origin/juliano` e `origin/joao`, sem a pull request revisada que o
-  roteiro exige (seção 3.1). A primeira, de `origin/joao` para a `main`, é a desta entrega, aberta
-  depois do prazo para revisão de Andre Bueno Ocanha. Não há integração contínua: os testes rodam com
+  roteiro exige (seção 3.1). A primeira, de `origin/joao` para a `main` (#1), foi a desta
+  entrega, aberta depois do prazo e revisada, aprovada e mesclada por Juliano Cesar Ferreira Ramos em
+  23/10/2026. Não há integração contínua: os testes rodam com
   `gradlew test` e `scripts\av1_evidencias.ps1`.
 - **Compilação Android.** As partes Android desta entrega não foram compiladas no ambiente
   do assistente (sem SDK); foram compiladas e testadas por Juliano Cesar Ferreira Ramos em
