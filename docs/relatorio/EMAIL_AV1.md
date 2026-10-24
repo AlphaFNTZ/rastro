@@ -18,11 +18,10 @@ Segue a entrega da AV1 do grupo Rastro.
 Integrantes e o que cada um implementou nesta fase:
 - Juliano Cesar Ferreira Ramos — semanas 2 e 3: incerteza do GNSS, buffer circular e teste de
   corrida, a malha (Wi-Fi Direct, Nearby, roteamento, serviço em primeiro plano), as melhorias 01 a 03
-  e as telas; na AV1, compilou, testou e instalou o aplicativo no aparelho, propôs a correção D-22 e
-  fez as coletas.
+  e as telas; na AV1, compilou, testou e instalou o aplicativo no aparelho, propôs a correção D-22,
+  fez as coletas e revisou e aprovou a pull request de origin/joao para a main.
 - Andre Bueno Ocanha — participou das decisões das semanas 1 a 3; na AV1, trabalhou com João Paulo
-  Silva em todos os commits de 21 e 22/10, escrevendo e conferindo (coautor de 20 commits), e é o
-  revisor da pull request de origin/joao para a main.
+  Silva em todos os commits de 21 e 22/10, escrevendo e conferindo (coautor de 20 commits).
 - João Paulo Silva — semana 1: domínio e contratos (Posicao, IMURead, Trajeto, exceções e testes),
   proposta e decisões; na AV1: reconciliação, detector de erro grosseiro, ensaio reprodutível,
   gravador de aquisição, tela Ensaio AV1, evidências, relatório e slides.
