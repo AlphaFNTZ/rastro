@@ -14,7 +14,8 @@ package com.example.rastro
  * @property latitude em graus decimais (WGS84), no intervalo [-90, 90].
  * @property longitude em graus decimais (WGS84), no intervalo [-180, 180].
  * @property timestampMs instante da leitura, em milissegundos desde a época Unix. Deve ser positivo.
- * @property acuraciaHorizontalM acurácia horizontal (1 sigma) informada pelo sensor GNSS, em metros. Nunca negativa.
+ * @property acuraciaHorizontalM raio horizontal com confiança de 68% informado pelo GNSS,
+ *   em metros (não é sigma de cada eixo). Nunca negativo.
  * @property velocidadeMps velocidade instantânea informada pelo sensor GNSS, em m/s. Nunca negativa (é uma magnitude).
  * @property acuraciaVelocidadeMps acurácia da velocidade informada pelo sensor GNSS, em m/s. Nunca negativa.
  *

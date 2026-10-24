@@ -25,6 +25,10 @@ android {
             }
         }
     }
+    sourceSets {
+        getByName("test").kotlin.directories.add("src/sharedTest/java")
+        getByName("androidTest").kotlin.directories.add("src/sharedTest/java")
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -32,12 +36,18 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.viewpager)
+    implementation(libs.tink.android)
+    implementation(libs.zxing.embedded)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+    implementation(libs.google.play.services.nearby)
+    implementation(libs.maplibre)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Controles opcionais da nova interface. MainActivity também suporta o
+         layout atual, que ainda utiliza discover, disconnect, sos e card_mapa. -->
+    <item name="btn_configuracao" type="id" />
+    <item name="btn_ativar_rastro" type="id" />
+    <item name="btn_desativar_rastro" type="id" />
+    <item name="btn_enviar_sos" type="id" />
+    <item name="fab_minha_localizacao" type="id" />
+    <item name="fab_ver_sos" type="id" />
+    <item name="texto_boas_vindas" type="id" />
+    <item name="layout_acoes_ativado" type="id" />
+    <item name="card_alerta_sos" type="id" />
+    <item name="tv_ultimo_sos_resumo" type="id" />
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" style="@style/Rastro.SettingsCard" android:layout_marginBottom="12dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+<TextView android:id="@+id/packet_title" style="@style/Rastro.ItemTitle" />
+<TextView android:id="@+id/packet_route" style="@style/Rastro.SupportingText" android:layout_marginTop="4dp"/>
+<TextView android:id="@+id/packet_state" style="@style/Rastro.SupportingText" android:layout_marginTop="12dp" android:textColor="?attr/colorPrimary"/>
+<TextView android:id="@+id/packet_expiry" style="@style/Rastro.SupportingText" android:layout_marginTop="4dp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/packet_remove" style="@style/Rastro.SecondaryAction" android:layout_marginTop="12dp" android:text="@string/custody_remove" android:textColor="?attr/colorError" app:strokeColor="?attr/colorOutline"/>
+</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

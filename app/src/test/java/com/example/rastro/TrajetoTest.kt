@@ -103,12 +103,14 @@ class TrajetoTest {
 
     @Test
     fun `pontosOrdenados devolve copia defensiva - mutar a lista devolvida nao afeta o trajeto`() {
-        val trajeto = Trajeto.vazio(capacidade = 5).comNovoPonto(posicao(timestampMs = 1_000L))
-        val copia = trajeto.pontosOrdenados().toMutableList()
-        copia.add(posicao(timestampMs = 2_000L))
+        val trajeto = Trajeto.vazio(capacidade = 5)
+            .comNovoPonto(posicao(timestampMs = 1_000L))
+            .comNovoPonto(posicao(timestampMs = 2_000L))
+        val copia = trajeto.pontosOrdenados() as MutableList<Posicao>
+        copia.clear()
 
-        assertEquals(1, trajeto.tamanho) // trajeto original não percebe a mutação da cópia
-        assertEquals(2, copia.size)
+        assertEquals(2, trajeto.tamanho)
+        assertEquals(listOf(1_000L, 2_000L), trajeto.pontosOrdenados().map { it.timestampMs })
     }
 
     /**

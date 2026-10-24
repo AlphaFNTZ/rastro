@@ -1,0 +1,16 @@
+{
+  "bloqueado_min": 36.26665220833333,
+  "fixos": 2014,
+  "fixos_gps": 1902,
+  "imu_hz_medio": 50.077960405156674,
+  "imu_hz_min": 49.91,
+  "imu_linhas_sem_lote": 4,
+  "imu_leituras": 108947,
+  "imu_descartadas": 0,
+  "cobertura_gps": 0.8731619837150835,
+  "maior_intervalo_fixos_s": 271.616928986,
+  "maior_intervalo_qualquer_fixo_s": 20.116908438,
+  "r68_rede_mediano_m": 100.0,
+  "consumo_pct_h": 4.963237272797947,
+  "atende": true
+}

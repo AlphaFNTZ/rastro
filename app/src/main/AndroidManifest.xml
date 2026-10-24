@@ -2,15 +2,50 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Nearby 19.3 consulta estas permissões também no Android 13+; não limitar por SDK. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" android:minSdkVersion="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:minSdkVersion="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:minSdkVersion="31" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:minSdkVersion="33" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" android:minSdkVersion="37" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- D-23: sem esta permissão o sistema corta o GPS ~3 min depois que a tela apaga. Concedida à mão em
+         Configurações > Aplicativos > Rastro > Permissões > Localização > Permitir o tempo todo; pedir no app fica para a AV2. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- AV1: mantém a CPU acordada durante a gravação para o acelerômetro seguir com a tela apagada. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/icone"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/icone_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Rastro">
+        <service
+            android:name=".service.RastroService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|location" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -21,6 +56,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ConfiguracaoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".DispositivosActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".HistoricoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".CustodyActivity" android:exported="false" />
+        <activity android:name=".av1.EnsaioActivity" android:exported="false" />
+        <activity android:name=".QrScanActivity" android:exported="false" android:screenOrientation="behind" android:configChanges="orientation|screenSize" />
     </application>
 
 </manifest>

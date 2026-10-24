@@ -3,29 +3,28 @@
 ## O que tem aqui
 
 ```
-app/src/main/java/br/ufla/rastro/domain/
+app/src/main/java/com/example/rastro/
   DomainExceptions.kt   — RastroDomainException, InvalidSensorReadException, InvalidTrajetoException
   Posicao.kt            — leitura GNSS imutável (equivalente ao "Fix" do glossário)
   IMURead.kt            — leitura IMU imutável (aceleração 3 eixos + atitude)
   Trajeto.kt            — estrutura de capacidade fixa, imutável, memória constante
 
-app/src/test/java/br/ufla/rastro/domain/
+app/src/test/java/com/example/rastro/
   PosicaoTest.kt
   IMUReadTest.kt
   TrajetoTest.kt
 ```
 
-Ajuste o pacote `br.ufla.rastro.domain` para o `applicationId`/pacote-base real do
-projeto de vocês antes de copiar os arquivos para o repositório (mova para o
-diretório correspondente do seu `app/src/...`).
+Os arquivos já estão integrados ao pacote `com.example.rastro` do projeto da raiz.
+A cópia em `app/app` não contém o domínio nem a entrega S2.
 
 ## Como rodar
 
 ```
-./gradlew test --tests "*Posicao*"
-./gradlew test --tests "*IMURead*"
-./gradlew test --tests "*Trajeto*"
-./gradlew test
+./gradlew :app:testDebugUnitTest --tests "*Posicao*"
+./gradlew :app:testDebugUnitTest --tests "*IMURead*"
+./gradlew :app:testDebugUnitTest --tests "*Trajeto*"
+./gradlew :app:testDebugUnitTest
 ```
 
 Relatório em `app/build/reports/tests/testDebugUnitTest/index.html`.

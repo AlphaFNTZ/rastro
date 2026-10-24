@@ -9,11 +9,30 @@
 
 O **Rastro** é um sistema ciberfísico de borda projetado para garantir a segurança e a comunicação contínua de equipes trabalhando em áreas remotas sem cobertura de redes móveis ou internet. 
 
-A solução transforma smartphones Android comuns em nós de uma rede mesh offline descentralizada (via Wi-Fi Direct / Bluetooth LE). O aplicativo executa processamento e inferência de IA inteiramente no dispositivo (*Edge AI*), detectando situações de emergência (como quedas bruscas) através dos sensores inerciais e propagando alertas de socorro em saltos (*multi-hop*) entre os nós até atingir a base de monitoramento.
+**Estado atual (S3):** transporte offline automático com Nearby Connections
+`P2P_CLUSTER`, múltiplos vizinhos, mensagens `BYTES`, roteamento por inundação com
+TTL/deduplicação e ACK multi-hop. Cada nó possui nome amigável editável e UUID
+estável; a tela distingue aparelhos descobertos, conectando e conectados, mostra a
+qualidade dos enlaces diretos e identifica nós alcançáveis por intermediários. O
+rádio físico (Bluetooth clássico, BLE ou Wi-Fi) é escolhido internamente pelo
+Nearby e não é exposto por sua API. Rede e aquisição IMU podem permanecer ativas em
+um serviço de primeiro plano após a tela ser fechada. Detecção de quedas, IA,
+persistência cifrada, autenticação dos nós e validação física A → B → C ainda não
+estão implementadas. A API padrão IMU não fornece sigma por eixo: a limitação
+permanece explícita. Veja [entrega S3](docs/README_Semana3.md) e
+[resultados da validação](docs/VALIDACAO_S3.md).
+
+**Melhorias 01:** SOS v3 com nome, horário e posição opcional; aquisição automática
+de localização, histórico estruturado da sessão e mapa MapLibre com precisão GPS,
+região offline preparada pelo usuário e perfis de alcance medidos. Veja o
+[guia de uso e validação](docs/MELHORIAS_01_IMPLEMENTACAO.md). Atualize todos os
+aparelhos do ensaio: versões antigas não interpretam as mensagens v3.
+
+A solução proposta transformará smartphones Android comuns em nós de uma rede mesh offline descentralizada (via Wi-Fi Direct / Bluetooth LE). O objetivo é executar processamento e inferência de IA inteiramente no dispositivo (*Edge AI*), detectar situações de emergência através dos sensores inerciais e propagar alertas em saltos (*multi-hop*) até a base. A proposta detalhada prioriza regras determinísticas para quedas e IA para administrar a rede.
 
 ---
 
-## 🎯 Principais Funcionalidades
+## 🎯 Funcionalidades planejadas
 
 - **Comunicação Mesh Offline:** Envio e retransmissão de pacotes de dados e alertas entre nós sem necessidade de infraestrutura centralizada.
 - **Detecção de Quedas na Borda:** Aquisição contínua de aceleração e inferência local para identificação de eventos críticos.
@@ -22,6 +41,15 @@ A solução transforma smartphones Android comuns em nós de uma rede mesh offli
 - **Privacidade e Segurança:** Dados sensíveis cifrados em repouso com AES-GCM e chaves mantidas no Android Keystore, sem exportação de dados para a nuvem.
 
 ---
+
+## AV1 — sente, corrige e detecta
+
+Reconciliação dos fixos GNSS sob restrição cinemática, detecção de erro grosseiro,
+gravação de 30 min com o aparelho bloqueado e ensaio reprodutível com semente
+(`com.example.rastro.av1`). Mapa capacidade → código → teste → evidência em
+[docs/README_AV1.md](docs/README_AV1.md); coleta e demonstração em
+[docs/ENSAIO_AV1.md](docs/ENSAIO_AV1.md); evidências geradas por
+`scripts\av1_evidencias.ps1` em `docs/evidencias/resultados`.
 
 ## 📁 Estrutura da Documentação
 
@@ -41,7 +69,68 @@ A solução transforma smartphones Android comuns em nós de uma rede mesh offli
 
 ## 🛠️ Requisitos e Configuração do Ambiente
 
-- **IDE:** Android Studio (JDK 17)
+- **IDE:** Android Studio com suporte ao AGP 9.3.3; abrir a raiz `rastro`, não `app/`
+- **Build atual:** Gradle 9.6.0, AGP 9.3.3, daemon JDK 25, compileSdk/targetSdk 37; bytecode Java 11
 - **Linguagem:** Java / Kotlin
 - **minSdk:** 26 (Android 8.0 Oreo)
 - **Testes:** Unidade em JUnit rodando localmente na JVM
+- **S3:** `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug`
+- **Aparelhos:** Nearby exige Google Play Services. A prova multi-hop exige três
+  Androids e topologia que impeça o enlace direto A → C.
+
+### Executar no Windows
+
+1. Abra `C:\Projetos\rastro` no Android Studio e sincronize o projeto Gradle.
+2. Configure o caminho do Android SDK em `local.properties` na raiz (arquivo local,
+   ignorado pelo Git). Nesta máquina, o SDK está em `C:\SDK`:
+
+   ```properties
+   sdk.dir=C\:/SDK
+   ```
+
+3. Use o JDK 25 para o Gradle e instale a plataforma Android SDK 37 pelo SDK Manager.
+4. Selecione o módulo `app` e um aparelho ou emulador com Google Play Services e
+   clique em **Run**.
+
+Para compilar e validar pelo PowerShell, execute na raiz:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+```
+
+O APK será gerado em `app/build/outputs/apk/debug/app-debug.apk`. Com um dispositivo
+conectado e a depuração USB autorizada, instale com:
+
+```powershell
+.\gradlew.bat :app:installDebug
+```
+
+Existe apenas um projeto Gradle: configurações e wrapper ficam na raiz, código e
+recursos em `app/src`, e documentação em `docs`. A cópia inicial `app/app` e as
+configurações Gradle duplicadas em `app/` foram removidas; seus ícones personalizados
+foram preservados no aplicativo atual.
+
+## Chat privado e portadores — Melhorias 02
+
+Em **Dispositivos → Conversas privadas**, cadastre os contatos presencialmente por
+QR Code nos dois aparelhos. Ative o Rastro para enviar texto diretamente ou pela
+malha conectada. O histórico e a caixa de saída são persistentes; intermediários
+não possuem as chaves para ler o texto.
+
+Consulte [chat, QR Code e validação da Parte 1](docs/MELHORIAS_02_PARTE1.md).
+
+Em **Conversas privadas → Caixa de correspondência**, habilite **Participar como
+portador** para guardar mensagens cifradas e entregá-las ao encontrar o destinatário
+diretamente. A Parte 2 mantém um portador por mensagem, além da cópia na origem,
+com cotas, validade e retorno persistente da confirmação. Consulte
+[uso, limites e testes da Parte 2](docs/MELHORIAS_02_PARTE2.md).
+## Repasse entre portadores — Melhorias 03
+
+Mensagens novas e recibos agora podem atravessar uma sequência de portadores sem
+contatos pessoais nos intermediários, com duas autorizações, delegações assinadas
+e retomada persistente após interrupções. Mensagens antigas mantêm o fluxo da
+Parte 2. A implementação preserva o envelope privado e o transporte Nearby.
+
+Consulte [uso, limites, testes e validações pendentes](docs/MELHORIAS_03_IMPLEMENTACAO.md).
+A troca controlada nos emuladores valida o protocolo e a persistência; o ensaio de
+rádio em aparelhos físicos continua necessário.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silhueta da nova marca de icone_monochrome, centralizada em 24dp para notificações. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.10869565"
+        android:scaleY="0.10869565"
+        android:translateX="-1.91304348"
+        android:translateY="-1.04347826">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M128 28L214 77.65V176.95L164 205.82L148 178.11L182 158.48V96.12L128 64.94L74 96.12V158.48L108 178.11L92 205.82L42 176.95V77.65Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M112 212V129.89A24 24 0 1 1 144 129.89V212Z" />
+    </group>
+</vector>
